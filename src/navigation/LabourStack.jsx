@@ -72,4 +72,5 @@ export default function LabourStack() {
       <Stack.Screen name="SkillUpload" component={SkillUploadScreen} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
- 
+  );
+}

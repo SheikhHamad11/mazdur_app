@@ -67,4 +67,5 @@ export default function EmployerStack() {
             <Stack.Screen name="PostJob" component={PostJobScreen} options={{ title: 'Post a Job' }} />
             <Tab.Screen name="MazdoorTV" component={MazdoorTV} />
         </Stack.Navigator>
-   
+    );
+}
