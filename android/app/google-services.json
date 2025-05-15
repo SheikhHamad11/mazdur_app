@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "251142360674",
+    "project_id": "new-app-60a79",
+    "storage_bucket": "new-app-60a79.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251142360674:android:a17f3ac24c6e43fdc58b3b",
+        "android_client_info": {
+          "package_name": "com.mazdur_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLAzf3eyab6jahmddqYRZZkgfsI-uS7Bw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
