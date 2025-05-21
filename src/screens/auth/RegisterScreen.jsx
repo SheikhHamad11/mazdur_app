@@ -37,6 +37,23 @@ export default function RegisterScreen({ navigation, route }) {
 
 
     const handleSignUp = async () => {
+        // Email regex for basic validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!name || !email || !password) {
+            Alert.alert('Error', 'Please fill in all fields.');
+            return;
+        }
+
+        if (!emailRegex.test(email)) {
+            Alert.alert('Invalid Email', 'Please enter a valid email address.');
+            return;
+        }
+
+        if (password.length < 6) {
+            Alert.alert('Weak Password', 'Password must be at least 6 characters long.');
+            return;
+        }
         try {
             setLoading(true)
             const userCredential = await auth().createUserWithEmailAndPassword(email, password);
@@ -51,58 +68,13 @@ export default function RegisterScreen({ navigation, route }) {
             });
             setLoading(false)
             console.log('User registered and role saved!');
-            navigation.navigate('Login'); // or 'Home'
+            // navigation.navigate('Login'); // or 'Home'
         } catch (error) {
             setLoading(false)
             console.error('Signup error:', error.message);
         }
     };
-    // const handleCnicChange = (text) => {
-    //     // Remove all non-digit characters
-    //     const cleaned = text.replace(/\D/g, '');
 
-    //     let formatted = '';
-    //     if (cleaned.length <= 5) {
-    //         formatted = cleaned;
-    //     } else if (cleaned.length <= 12) {
-    //         formatted = `${cleaned.slice(0, 5)}-${cleaned.slice(5)}`;
-    //     } else {
-    //         formatted = `${cleaned.slice(0, 5)}-${cleaned.slice(5, 12)}-${cleaned.slice(12, 13)}`;
-    //     }
-
-    //     setCnic(formatted);
-    // };
-
-
-    // const verifyOtp = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const result = await confirmResult.confirm(otp);
-    //         const user = result.user;
-
-    //         await firestore().collection('users').doc(user.uid).set({
-    //             uid: user.uid,
-    //             phone: '+92' + phone,
-    //             cnic: cnic,
-    //             userType: role, // e.g., 'laborer' or 'employer'
-    //             createdAt: firestore.FieldValue.serverTimestamp(),
-    //         });
-    //         const userDoc = await firestore().collection('users').doc(user.uid).get();
-    //         const userType = userDoc.data().userType;
-
-    //         Alert.alert('Phone Verified & Data Saved');
-    //         setLoading(false);
-    //         if (userType === 'laborer') {
-    //             navigation.replace('LaborerDashboard');
-    //         } else {
-    //             navigation.replace('EmployerDashboard');
-    //         }
-
-    //     } catch (error) {
-    //         setLoading(false);
-    //         Alert.alert('Invalid OTP');
-    //     }
-    // };
 
 
     return (
@@ -148,9 +120,6 @@ export default function RegisterScreen({ navigation, route }) {
             <Pressable style={styles.buttonContainer} onPress={() => navigation.navigate('Login')} >
                 <Text style={{ color: 'white', textAlign: 'center' }}>Login Here</Text>
             </Pressable>
-
-
-
 
             {confirmResult && (
                 <>
@@ -218,3 +187,51 @@ export const styles = StyleSheet.create({
         fontSize: 24, fontWeight: 'bold'
     }
 });
+
+
+// const handleCnicChange = (text) => {
+//     // Remove all non-digit characters
+//     const cleaned = text.replace(/\D/g, '');
+
+//     let formatted = '';
+//     if (cleaned.length <= 5) {
+//         formatted = cleaned;
+//     } else if (cleaned.length <= 12) {
+//         formatted = `${cleaned.slice(0, 5)}-${cleaned.slice(5)}`;
+//     } else {
+//         formatted = `${cleaned.slice(0, 5)}-${cleaned.slice(5, 12)}-${cleaned.slice(12, 13)}`;
+//     }
+
+//     setCnic(formatted);
+// };
+
+
+// const verifyOtp = async () => {
+//     try {
+//         setLoading(true);
+//         const result = await confirmResult.confirm(otp);
+//         const user = result.user;
+
+//         await firestore().collection('users').doc(user.uid).set({
+//             uid: user.uid,
+//             phone: '+92' + phone,
+//             cnic: cnic,
+//             userType: role, // e.g., 'laborer' or 'employer'
+//             createdAt: firestore.FieldValue.serverTimestamp(),
+//         });
+//         const userDoc = await firestore().collection('users').doc(user.uid).get();
+//         const userType = userDoc.data().userType;
+
+//         Alert.alert('Phone Verified & Data Saved');
+//         setLoading(false);
+//         if (userType === 'laborer') {
+//             navigation.replace('LaborerDashboard');
+//         } else {
+//             navigation.replace('EmployerDashboard');
+//         }
+
+//     } catch (error) {
+//         setLoading(false);
+//         Alert.alert('Invalid OTP');
+//     }
+// };

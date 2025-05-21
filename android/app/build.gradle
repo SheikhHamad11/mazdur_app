@@ -83,6 +83,7 @@ android {
         applicationId "com.mazdur_app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        missingDimensionStrategy 'react-native-video', 'exoplayer'
         versionCode 1
         versionName "1.0"
     }

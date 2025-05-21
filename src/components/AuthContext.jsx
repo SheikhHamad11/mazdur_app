@@ -46,7 +46,7 @@ export default function AuthProvider({ children }) {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [userData]);
 
     return (
         <AuthContext.Provider value={{ user, userData, setUserData, logout, loading }}>

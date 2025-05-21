@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import {
-    View,
-    Text,
     TextInput,
-    Button,
     ScrollView,
     Alert,
     StyleSheet,
 } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
 import CommonButton from '../../components/CommonButton';
 import CommonHeader from '../../components/CommonHeader';
+import { getFirestore, collection, addDoc, serverTimestamp } from '@react-native-firebase/firestore';
+import { getAuth } from '@react-native-firebase/auth';
 
 export default function PostJobScreen({ navigation }) {
     const [title, setTitle] = useState('');
@@ -26,10 +23,12 @@ export default function PostJobScreen({ navigation }) {
             Alert.alert('Missing Fields', 'Please fill out all required fields.');
             return;
         }
-
         try {
-            const user = auth().currentUser;
-            await firestore().collection('jobs').add({
+            const auth = getAuth();
+            const db = getFirestore();
+            const user = auth.currentUser;
+
+            await addDoc(collection(db, 'jobs'), {
                 title,
                 description,
                 location,
@@ -37,7 +36,8 @@ export default function PostJobScreen({ navigation }) {
                 jobType,
                 workersNeeded,
                 employerId: user.uid,
-                postedAt: firestore.FieldValue.serverTimestamp(),
+                status: 'pending',
+                postedAt: serverTimestamp(),
             });
 
             Alert.alert('Success', 'Job posted successfully!');
@@ -51,7 +51,7 @@ export default function PostJobScreen({ navigation }) {
     return (
         <>
             <CommonHeader title={'Post a Job'} />
-            <ScrollView contentContainerStyle={styles.container}>
+            <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps={'handled'}>
 
                 {/* <Text style={styles.heading}>Post a Job</Text> */}
 
@@ -95,7 +95,6 @@ export default function PostJobScreen({ navigation }) {
                     value={jobType}
                     onChangeText={setJobType}
                 />
-
                 <TextInput
                     style={styles.input}
                     placeholder="Workers Needed"
@@ -105,9 +104,7 @@ export default function PostJobScreen({ navigation }) {
                     keyboardType="numeric"
                 />
 
-                {/* <View style={styles.buttonContainer}>
-                <Button title="Post Job" onPress={handlePostJob} />
-            </View> */}
+
                 <CommonButton title={'Post Job'} onPress={handlePostJob} />
             </ScrollView>
         </>

@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
-import { getStorage, ref, uploadFile, getDownloadURL } from '@react-native-firebase/storage';
-import { getFirestore, doc, updateDoc, getDoc } from '@react-native-firebase/firestore';
+import firestore, { doc, getDoc, getFirestore } from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useAuth } from '../../components/AuthContext'; // make sure you have this hook set up
-import Loading from '../../components/Loading';
 import CommonHeader from '../../components/CommonHeader';
 
 export default function EditProfile() {
-    const { user, setUserData } = useAuth();
+    const { user, userData } = useAuth();
     const [skills, setSkills] = useState('');
     const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
     const [imageUri, setImageUri] = useState('');
     const [uploading, setUploading] = useState(false);
 
@@ -23,6 +23,7 @@ export default function EditProfile() {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setName(data?.name || '');
+                setEmail(data?.email || '');
                 setSkills(data?.skills || '');
                 setImageUri(data?.photoURL || '');
                 // Use data here
@@ -45,28 +46,26 @@ export default function EditProfile() {
         setUploading(true);
         let photoURL = imageUri;
 
-        const storage = getStorage();
-        const firestore = getFirestore();
-
+        // Upload image if it's a new one (not already hosted)
         if (imageUri && !imageUri.includes('https://')) {
-            const imageRef = ref(storage, `profilePics/${user.uid}`);
-            // uploadFile is the modular equivalent of putFile
-            await uploadFile(imageRef, imageUri);
-            photoURL = await getDownloadURL(imageRef);
+            const ref = storage().ref(`profilePics/${user.uid}`);
+            await ref.putFile(imageUri);
+            photoURL = await ref.getDownloadURL();
         }
 
-        const userRef = doc(firestore, 'users', user.uid);
-        await updateDoc(userRef, {
+        await firestore().collection('users').doc(user.uid).update({
             name,
             skills,
             photoURL,
         });
+
         // Optional: Refetch the updated data
-        const updatedSnap = await getDoc(userRef);
-        if (updatedSnap.exists()) {
-            const updatedData = updatedSnap.data();
-            setUserData(updatedData); // ✅ Update in context
-        }
+        // const updatedSnap = await getDoc(userRef);
+        // if (updatedSnap.exists()) {
+        //     const updatedData = updatedSnap.data();
+        //     setUserData(updatedData); // ✅ Update in context
+        // }
+
         Alert.alert('Success', 'Profile updated successfully');
         setUploading(false);
     };
@@ -86,6 +85,7 @@ export default function EditProfile() {
                     )}
                 </TouchableOpacity>
                 <Text style={styles.label}>Name:</Text>
+
                 <TextInput
                     style={styles.input}
                     placeholder="Name"
@@ -93,21 +93,32 @@ export default function EditProfile() {
                     value={name}
                     onChangeText={setName}
                 />
-                <Text style={styles.label}>Skills</Text>
+                <Text style={styles.label}>Email:</Text>
                 <TextInput
-                    style={styles.input}
-                    placeholder="Skills (e.g., Masonry, Electrician)"
+                    editable={false}
+                    style={[styles.input, { backgroundColor: 'lightgray' }]}
+                    placeholder="Email"
                     placeholderTextColor={'gray'}
-                    value={skills}
-                    onChangeText={setSkills}
+                    value={email}
+                    onChangeText={setEmail}
                 />
-
+                {userData?.role == 'labour' &&
+                    <>
+                        <Text style={styles.label}>Skills</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Skills (e.g., Masonry, Electrician)"
+                            placeholderTextColor={'gray'}
+                            value={skills}
+                            onChangeText={setSkills}
+                        />
+                    </>
+                }
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={uploading}>
                     <Text style={styles.saveButtonText}>{uploading ? <ActivityIndicator size={20} color={'white'} /> : 'Save Changes'}</Text>
                 </TouchableOpacity>
             </View>
         </>
-
     );
 }
 
@@ -115,12 +126,12 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
     title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
     input: {
+        color: 'black',
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 10,
         padding: 12,
         marginBottom: 15,
-        color: 'black'
     },
     avatar: {
         width: 100,

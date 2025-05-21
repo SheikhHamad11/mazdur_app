@@ -1,36 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Switch, Alert } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import { doc, getFirestore, onSnapshot, updateDoc } from '@react-native-firebase/firestore';
 import { useAuth } from '../../components/AuthContext';
+import { getAuth } from '@react-native-firebase/auth';
 
 export default function AvailabilityToggle() {
-    const { user } = useAuth();
-    const [available, setAvailable] = useState(false);
+    const { user, userData } = useAuth();
+    const [available, setAvailable] = useState(true);
     const [loading, setLoading] = useState(true);
+    const db = getFirestore(); // Initialize Firestore
+    const auth = getAuth();
+    useEffect(() => {
+        if (!user) return;
 
-    // useEffect(() => {
-    //     if (!user) return;
+        const userDocRef = doc(db, 'users', user.uid);
 
-    //     const unsubscribe = firestore()
-    //         .collection('users')
-    //         .doc(user.uid)
-    //         .onSnapshot(doc => {
-    //             if (doc.exists) {
-    //                 const data = doc.data();
-    //                 setAvailable(data?.available || false);
-    //             }
-    //             setLoading(false);
-    //         });
+        const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setAvailable(data?.available || false);
+            }
+            setLoading(false);
+        });
 
-    //     return unsubscribe;
-    // }, [user]);
+        return unsubscribe;
+    }, [user]);
 
     const toggleAvailability = async () => {
         try {
-            await firestore()
-                .collection('users')
-                .doc(user.uid)
-                .update({ available: !available });
+            const userDocRef = doc(db, 'users', user.uid);
+            await updateDoc(userDocRef, { available: !available });
             setAvailable(!available);
         } catch (error) {
             Alert.alert('Error', 'Failed to update availability');

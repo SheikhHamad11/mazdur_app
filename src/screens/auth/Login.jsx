@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
+import { TextInput, Text, ScrollView, Image, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { styles } from './RegisterScreen';
 import { getAuth, signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
@@ -28,14 +28,15 @@ export default function LoginScreen({ navigation }) {
                 const role = docSnap.data().role;
 
                 if (role === 'labour') {
-                    navigation.navigate('LabourDashboard');
+                    navigation.replace('LabourTabs');
                 } else if (role === 'employer') {
-                    navigation.replace('EmployerDashboard');
+                    navigation.replace('EmployerTabs');
                 } else {
                     console.warn('Role not assigned!');
                 }
             } else {
                 console.warn('User data not found in Firestore!');
+                Alert.alert('Error', 'User  not found ')
             }
 
         } catch (error) {
@@ -73,3 +74,4 @@ export default function LoginScreen({ navigation }) {
 
     );
 }
+

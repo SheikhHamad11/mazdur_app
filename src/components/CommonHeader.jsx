@@ -10,7 +10,7 @@ export default function CommonHeader({ title, isfire }) {
             </Text>
             {/* Left Blue Expanded Shape */}
             <View style={styles.blueExpansion} />
-            {isfire === true && <Icon name="person" size={25} color="orange" style={{ marginTop: -10 }} />}
+            {isfire === true && <Icon name="person" size={25} color="white" style={{ marginTop: -10 }} />}
         </View>
     );
 }
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderBottomRightRadius: 50,
         padding: 24,
-        elevation: 1,
+        // elevation: 1,
         gap: 10,
         width: '100%',
         // flex: 1,

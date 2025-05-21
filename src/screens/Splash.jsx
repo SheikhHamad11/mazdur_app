@@ -1,20 +1,51 @@
-import React, { useEffect } from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Image, Text, StyleSheet, Animated, Easing } from 'react-native';
 
 export default function SplashScreen({ navigation }) {
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         navigation.replace('Home'); // Navigate to Welcome after 3 seconds
-    //     }, 3000);
+    const slideAnim = useRef(new Animated.Value(-200)).current; // start above the screen
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    //     return () => clearTimeout(timer);
-    // }, []);
+    useEffect(() => {
+        // Parallel animation: slide + fade
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 1500,
+                useNativeDriver: true,
+                easing: Easing.bounce, // bounce effect
+            }),
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 1500,
+                useNativeDriver: true,
+            }),
+        ]).start();
+
+        // const timer = setTimeout(() => {
+        //     navigation.replace('Home'); // Navigate to your desired screen
+        // }, 3000);
+
+        // return () => clearTimeout(timer);
+    }, []);
 
     return (
         <View style={styles.container}>
-            <Image source={require('../assets/mazdur.png')} style={styles.logo} />
-            <Text style={styles.tagline}>Connecting Laborers</Text>
-            <Text style={styles.tagline1}>With Work Worldwide</Text>
+            <Animated.Image
+                source={require('../assets/mazdur.png')}
+                style={[
+                    styles.logo,
+                    {
+                        opacity: fadeAnim,
+                        transform: [{ translateY: slideAnim }],
+                    },
+                ]}
+            />
+            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+                Connecting Laborers
+            </Animated.Text>
+            <Animated.Text style={[styles.tagline1, { opacity: fadeAnim }]}>
+                With Work Worldwide
+            </Animated.Text>
         </View>
     );
 }
@@ -39,9 +70,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     tagline1: {
-
         fontSize: 18,
-
         color: '#444',
         textAlign: 'center',
     },

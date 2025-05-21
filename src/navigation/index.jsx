@@ -10,7 +10,7 @@ import { StatusBar } from 'react-native';
 
 export default function Routes() {
   const { user, userData, loading } = useAuth();
-  { console.log('user.role', userData?.role) }
+  // { console.log('user.role', userData?.role) }
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -20,18 +20,23 @@ export default function Routes() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) (<SplashScreen />)
+  if (showSplash) {
+    // Show your splash component or animation
+    return (
+      <SplashScreen />
+    );
+  }
 
-  if (loading) (<Loading />)
-
-
+  if (loading) {
+    // Show a loading indicator while determining user status
+    return (
+      <Loading />
+    );
+  }
 
   return (
     <>
-      <StatusBar
-        backgroundColor="#052E5F" //rgb(240, 240, 240) Background color for Android
-        barStyle="light-content" // Content style for both Android and iOS (use "dark-content" for dark text/icons)
-      />
+      <StatusBar backgroundColor={'#052E5F'} barStyle={'light-content'} />
       {!userData ? (
         <AuthStack />
       ) : userData?.role === 'labour' ? (

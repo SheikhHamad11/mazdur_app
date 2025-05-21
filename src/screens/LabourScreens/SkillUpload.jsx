@@ -20,6 +20,8 @@ export default function SkillUploadScreen() {
     const pickVideo = async () => {
         const result = await launchImageLibrary({
             mediaType: 'video',
+            videoQuality: 'low', // or 'medium', 'high'
+            durationLimit: 30,
         });
 
         if (result.didCancel) return;
@@ -70,11 +72,11 @@ export default function SkillUploadScreen() {
 
             {videoUri && <Text style={styles.uriText}>Video selected</Text>}
 
-            {uploading ? (
-                <ActivityIndicator size="large" color="blue" style={{ marginTop: 20 }} />
-            ) : (
-                videoUri && <CommonButton title="Upload Video" onPress={uploadVideo} />
-            )}
+
+
+
+            {videoUri && <CommonButton title={uploading ? <ActivityIndicator size={20} color="white" /> : "Upload Video"} onPress={uploadVideo} />}
+
         </View>
     );
 }

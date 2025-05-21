@@ -1,29 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { collection, getDocs, getFirestore, orderBy, query, where } from '@react-native-firebase/firestore';
 import { useAuth } from '../../components/AuthContext'; // Adjust if your path is different
 import CommonHeader from '../../components/CommonHeader';
-import auth from '@react-native-firebase/auth';
+import auth, { getAuth } from '@react-native-firebase/auth';
+import Loading from '../../components/Loading';
 export default function MyPostedJobsScreen() {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
-
-
     fetchJobs();
   }, []);
 
   const fetchJobs = async () => {
     try {
-      const user = auth().currentUser;
-      const snapshot = await firestore()
-        .collection('jobs')
-        .where('employerId', '==', user.uid)
-        .orderBy('postedAt', 'desc')
-        .get();
+      const auth = getAuth(); // ✅ Modular auth
+      const db = getFirestore(); // ✅ Modular firestore
 
+      const user = auth.currentUser;
+      const jobsRef = collection(db, 'jobs');
+      const jobsQuery = query(
+        jobsRef,
+        where('employerId', '==', user.uid),
+        orderBy('postedAt', 'desc')
+      );
+
+      const snapshot = await getDocs(jobsQuery);
       const jobData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -45,16 +49,8 @@ export default function MyPostedJobsScreen() {
 
 
   if (loading) {
-    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
+    return <Loading />;
   }
-
-  // if (jobs.length === 0) {
-  //   return (
-  //     <View style={styles.emptyContainer}>
-  //       <Text style={styles.emptyText}>No jobs posted yet.</Text>
-  //     </View>
-  //   );
-  // }
 
   return (
     <>
@@ -70,7 +66,7 @@ export default function MyPostedJobsScreen() {
             <Text style={styles.title}>Job Title:{item.title}</Text>
             <Text>Job Description:{item.description}</Text>
             <Text style={styles.label}>Location: {item.location}</Text>
-            <Text style={styles.label}>Date: {item.date}</Text>
+            <Text style={styles.label}>Date: {item.postedAt.toDate().toLocaleString()}</Text>
             <Text style={styles.status}>Status: {item.status}</Text>
           </View>
         )}

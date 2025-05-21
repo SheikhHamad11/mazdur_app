@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import firestore, { collection, getDocs, getFirestore, query, where } from '@react-native-firebase/firestore';
+import firestore, { collection, doc, getDocs, getFirestore, query, updateDoc, where } from '@react-native-firebase/firestore';
 import { useAuth } from '../../components/AuthContext'; // Assuming you use a custom auth hook
 import Loading from '../../components/Loading';
 import CommonHeader from '../../components/CommonHeader';
+import { firebase } from '@react-native-firebase/auth';
 
 export default function JobRequestsScreen() {
     const { user } = useAuth();
@@ -11,17 +12,15 @@ export default function JobRequestsScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    console.log('user.uid', user.uid)
+
 
     const fetchRequests = async () => {
         const firestore = getFirestore();
         try {
-            const jobsRef = collection(firestore, 'jobs');
+            const jobsRef = collection(firestore, 'jobsRequests');
             const q = query(jobsRef, where('labourId', '==', user.uid));
             // If you want to add orderBy later, just add it inside query()
-
             const snapshot = await getDocs(q);
-
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setRequests(data);
             console.log('Jobdata', data)
@@ -44,14 +43,25 @@ export default function JobRequestsScreen() {
         setRefreshing(false);
     };
 
-    const handleUpdateStatus = async (id, status) => {
+    const db = getFirestore();
+
+    const handleUpdateStatus = async (id, newStatus) => {
         try {
-            await firestore().collection('jobs').doc(id).update({ status });
-            setRequests(prev =>
-                prev.map(r => (r.id === id ? { ...r, status } : r))
+            const requestRef = doc(db, 'jobsRequests', id);
+
+            // Update status field
+            await updateDoc(requestRef, { status: newStatus });
+
+            // Update local state
+            setRequests(prevRequests =>
+                prevRequests.map(request =>
+                    request.id === id ? { ...request, status: newStatus } : request
+                )
             );
-        } catch (err) {
-            console.error('Error updating status:', err);
+
+            console.log(`Status updated to '${newStatus}' for request ID: ${id}`);
+        } catch (error) {
+            console.error('Error updating job request status:', error);
         }
     };
 
@@ -72,13 +82,14 @@ export default function JobRequestsScreen() {
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
-                        <Text style={styles.title}>Skill: {item.title}</Text>
-                        <Text>Employer ID: {item.employerName}</Text>
-                        <Text>Location: {item.location}</Text>
-                        <Text>Date: {new Date(item.date.seconds * 1000).toLocaleString()}</Text>
-                        <Text>Status: {item.status}</Text>
+                        <Text style={styles.title}>Skill: {item?.jobTitle}</Text>
+                        <Text>Employer ID: {item?.employerId}</Text>
+                        <Text>Location: {item?.location}</Text>
+                        <Text>Salary: {item?.salary}</Text>
+                        <Text>Date: {item.date?.toDate().toLocaleString()}</Text>
+                        <Text>Status: {item?.status}</Text>
 
-                        {item.status === 'pending' && (
+                        {item?.status === 'pending' && (
                             <View style={styles.buttonRow}>
                                 <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'accepted')} style={styles.acceptBtn}>
                                     <Text style={styles.btnText}>Accept</Text>

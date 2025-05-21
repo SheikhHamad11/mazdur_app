@@ -4,10 +4,10 @@ import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import CommonHeader from '../../components/CommonHeader';
 import { useAuth } from '../../components/AuthContext';
-
+import Icon from 'react-native-vector-icons/Ionicons';
 export default function LaborerSettings() {
     const navigation = useNavigation();
-    const { logout } = useAuth();
+    const { logout, userData } = useAuth();
 
 
     const handleEditProfile = () => {
@@ -23,15 +23,35 @@ export default function LaborerSettings() {
         Alert.alert('Notifications', 'Toggle notification settings here.');
     };
 
+    const handleBoost = () => {
+        Alert.alert('Boost', 'Comming soon.');
+    };
+
+    const handleReviews = () => {
+        Alert.alert('Reviews', 'Comming soon.');
+    };
+
+    const ExploreNewJobs = () => {
+        navigation.navigate('ExploreNewJobs');
+    }
+
     return (
         <>
             <CommonHeader title="Settings" />
             <View style={styles.container}>
-
-
                 <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
                     <Text style={styles.buttonText}>Edit Profile</Text>
                 </TouchableOpacity>
+                {userData?.role == 'labour' && <>
+                    <TouchableOpacity style={styles.button} onPress={ExploreNewJobs}>
+                        <Text style={styles.buttonText}>Explore New Jobs </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button} onPress={handleBoost}>
+                        <Text style={styles.buttonText}>Boost Profile </Text>
+                    </TouchableOpacity>
+                </>
+                }
+
 
                 <TouchableOpacity style={styles.button} onPress={handleChangeLanguage}>
                     <Text style={styles.buttonText}>Change Language</Text>
@@ -40,6 +60,13 @@ export default function LaborerSettings() {
                 <TouchableOpacity style={styles.button} onPress={handleNotifications}>
                     <Text style={styles.buttonText}>Notifications</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button} onPress={handleReviews}>
+                    <Text style={styles.buttonText}>Reviews</Text>
+                </TouchableOpacity>
+
+
+
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#e74c3c' }]} onPress={logout}>
                     <Text style={styles.buttonText}>Logout</Text>

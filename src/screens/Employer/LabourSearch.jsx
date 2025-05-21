@@ -1,26 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import firestore, { addDoc, onSnapshot, serverTimestamp } from '@react-native-firebase/firestore';
 import CommonHeader from '../../components/CommonHeader';
 import { useAuth } from '../../components/AuthContext';
-
+import { getFirestore, collection, query, where, getDocs } from '@react-native-firebase/firestore';
+import Loading from '../../components/Loading';
 export default function LaborSearchScreen({ navigation }) {
     const { user } = useAuth()
-    const [query, setQuery] = useState('');
+    const [queiry, setQueiry] = useState('');
     const [laborers, setLaborers] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sentRequests, setSentRequests] = useState({});
+    const db = getFirestore();
+
+    useEffect(() => {
+        const q = query(
+            collection(db, 'jobsRequests'),
+            where('employerId', '==', user.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedStatuses = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                updatedStatuses[data.labourId] = data.status; // e.g., 'pending' or 'accepted'
+            });
+            setSentRequests(updatedStatuses); // This updates UI based on latest status
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         const fetchLaborers = async () => {
             try {
-                const snapshot = await firestore().collection('users').where('role', '==', 'labour').get();
-                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const db = getFirestore(); // Get Firestore instance
+                const q = query(
+                    collection(db, 'users'),
+                    where('role', '==', 'labour')
+                );
+                const snapshot = await getDocs(q);
+                const data = snapshot.docs.map(docSnap => ({
+                    id: docSnap.id,
+                    ...docSnap.data(),
+                }));
+
                 setLaborers(data);
-                {
-                    console.log({ data });
-                }
                 setFiltered(data);
+                console.log({ data });
             } catch (err) {
                 console.log('Error fetching laborers:', err);
             } finally {
@@ -32,7 +60,7 @@ export default function LaborSearchScreen({ navigation }) {
     }, []);
 
     const handleSearch = (text) => {
-        setQuery(text);
+        setQueiry(text);
         const filteredResults = laborers.filter((item) =>
             item.name?.toLowerCase().includes(text.toLowerCase()) ||
             item.skills?.includes(text.toLowerCase())
@@ -40,17 +68,19 @@ export default function LaborSearchScreen({ navigation }) {
         setFiltered(filteredResults);
 
     };
-    const sendJobRequest = async (labour) => {
+    const sendJobRequest = async (labourId) => {
         try {
-            await firestore().collection('jobs').add({
+            const db = getFirestore(); // Initialize Firestore instance
 
-                employerName: user.name,
-                labourId: labour.id,
-                skill: labour.skill,
+            await addDoc(collection(db, 'jobsRequests'), {
+                labourId,
                 employerId: user.uid,
                 status: 'pending',
-                date: firestore.FieldValue.serverTimestamp(),
+                date: serverTimestamp(),
             });
+            // Mark this labourId as requested
+            setSentRequests(prev => ({ ...prev, [labourId]: true }));
+
 
             alert('Job request sent!');
         } catch (err) {
@@ -59,7 +89,7 @@ export default function LaborSearchScreen({ navigation }) {
     };
 
 
-    if (loading) return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
+    if (loading) return <Loading />;
 
     return (
         <>
@@ -69,7 +99,7 @@ export default function LaborSearchScreen({ navigation }) {
                 <TextInput
                     placeholder="Search by skill or name"
                     placeholderTextColor={'gray'}
-                    value={query}
+                    value={queiry}
                     onChangeText={handleSearch}
                     style={styles.searchInput}
                 />
@@ -80,7 +110,7 @@ export default function LaborSearchScreen({ navigation }) {
                     <FlatList
                         data={filtered}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => renderLaborer({ item, sendJobRequest })}
+                        renderItem={({ item }) => renderLaborer({ item, sendJobRequest, sentRequests })}
                         contentContainerStyle={{ paddingBottom: 20 }}
 
                     />
@@ -90,17 +120,32 @@ export default function LaborSearchScreen({ navigation }) {
     );
 }
 
-const renderLaborer = ({ item, navigation, sendJobRequest }) => (
+const renderLaborer = ({ item, navigation, sendJobRequest, sentRequests }) => (
 
     <View style={styles.card}>
-        <Text style={styles.name}>Name:{item.name}</Text>
-        <Text>Skills: {item?.skills}</Text>
-        <Text>Status: {item?.available ? 'Available' : 'Unavailable'}</Text>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+            <>
+                {item?.photoURL ? (
+                    <Image source={{ uri: item?.photoURL }} style={styles.image} />
+                ) : (
+                    <Image source={require('../../assets/placeholder.png')} style={styles.image} />
+                )}
+            </>
+            <View>
+                <Text style={styles.name}>Labour Name:{item.name}</Text>
+                <Text>Email: {item?.email}</Text>
+                <Text>Skills: {item?.skills}</Text>
+
+                <Text>Status: {item?.available ? 'Available' : 'Unavailable'}</Text>
+            </View>
+        </View>
+
         <TouchableOpacity
-            style={styles.button}
-            onPress={() => sendJobRequest(item)}
+            style={[styles.button, { backgroundColor: sentRequests[item.id] === 'pending' ? '#007bff' : 'gray' }]}
+            onPress={() => sendJobRequest(item.id)}
+            disabled={sentRequests[item.id] === 'pending' || sentRequests[item.id] === 'accepted'} // ✅ explicit boolean
         >
-            <Text style={styles.buttonText}>Send Job Request</Text>
+            <Text style={styles.buttonText}> {sentRequests[item.id] === 'accepted' ? 'Accepted' : sentRequests[item.id] === 'pending' ? 'Requested' : 'Send Request'}</Text>
         </TouchableOpacity>
     </View>
 );
@@ -124,7 +169,7 @@ const styles = StyleSheet.create({
     name: { fontSize: 18, fontWeight: 'bold' },
     button: {
         marginTop: 10,
-        backgroundColor: '#007bff',
+
         padding: 10,
         borderRadius: 8,
     },
@@ -135,4 +180,7 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 16,
     },
+    image: {
+        width: 100, height: 100, borderRadius: 50
+    }
 });
