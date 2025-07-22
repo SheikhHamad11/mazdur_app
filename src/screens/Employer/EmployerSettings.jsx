@@ -4,6 +4,7 @@ import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import CommonHeader from '../../components/CommonHeader';
 import { useAuth } from '../../components/AuthContext';
+import AppText from '../../components/AppText';
 
 export default function EmployerSettings() {
     const navigation = useNavigation();
@@ -51,7 +52,7 @@ export default function EmployerSettings() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 30 },
+    title: { fontSize: 24, marginBottom: 30 },
     button: {
         backgroundColor: '#052E5F',
         padding: 15,

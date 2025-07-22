@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Switch, ActivityIndicator, FlatList, ScrollView, Dimensions, Pressable } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, ScrollView, Dimensions, Pressable, ToastAndroid } from 'react-native';
 import { useAuth } from '../../components/AuthContext';
 import auth from '@react-native-firebase/auth';
 import Video from 'react-native-video'; // or use `react-native-video`
@@ -8,10 +8,16 @@ import PlayIcon from 'react-native-vector-icons/Ionicons';
 import AvailabilityToggle from '../components/Availability';
 import EchoLike from '../components/EchoLikes';
 import Loading from '../../components/Loading';
-import CommonHeader from '../../components/CommonHeader';
 import { getFirestore, doc, getDoc, arrayRemove, updateDoc } from '@react-native-firebase/firestore';
-import { deleteObject, getStorage } from '@react-native-firebase/storage';
-const { width } = Dimensions.get('window')
+import { deleteObject, getStorage, ref } from '@react-native-firebase/storage';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import SkillUploadScreen from './SkillUpload';
+import AppText from '../../components/AppText';
+import { useIsFocused } from '@react-navigation/native';
+import HorizontalVideoCarousel from '../../components/HorizontalVideoCaresoul';
+import MyButton from '../../components/MyButton';
+const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/8368830593';
+// const adUnitId = TestIds.BANNER; // FOR DEBUGGING
 export default function LabourDashboard({ navigation }) {
     const { user, userData } = useAuth();
     // const [available, setAvailable] = useState(true);
@@ -20,10 +26,12 @@ export default function LabourDashboard({ navigation }) {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPlaying, setCurrentPlaying] = useState(null);
-
+    const isFocused = useIsFocused();
     const togglePlay = (index) => {
         setCurrentPlaying(prev => (prev === index ? null : index));
     };
+
+
     useEffect(() => {
         if (!user) return;
 
@@ -51,132 +59,84 @@ export default function LabourDashboard({ navigation }) {
         fetchVideos();
     }, [user, userData]);
 
-    const deleteSkillVideo = async (videoUrl) => {
-        const firestore = getFirestore();
-        const storage = getStorage();
 
-        try {
-            // Delete from Firestore
-            const userRef = doc(firestore, 'users', user.uid);
-            await updateDoc(userRef, {
-                skillVideos: arrayRemove(videoUrl),
-            });
-
-            // Delete from Firebase Storage
-            const videoRef = ref(storage, videoUrl);
-            await deleteObject(videoRef);
-
-            // Update local state
-            setVideos(prev => prev.filter(url => url !== videoUrl));
-        } catch (error) {
-            console.error('Error deleting skill video:', error);
-        }
-    };
-    // const onRefresh = async () => {
-    //     setRefreshing(true);
-    //     await userData(); // reuse your existing fetch logic
-    //     setRefreshing(false);
-    // };
-
-
-
-    if (loading) {
-        return (
-            <Loading />
-        );
-    }
+    // if (loading) {
+    //     return (
+    //         <Loading />
+    //     );
+    // }
 
     return (
         <>
-            <CommonHeader title="Labour Dashboard" isfire={true} />
+            <View style={styles.header}>
+                <AppText style={styles.headerTitle} font='bold' >
+                    Welcome,{'\n'}Labour!
+                </AppText>
 
-            <ScrollView  >
-                <View style={styles.container}>
-                    <Text style={styles.heading}>Welcome, {userData.name}</Text>
-
+                <View>
                     {userData?.photoURL ? (
                         <Image source={{ uri: userData?.photoURL }} style={styles.avatar} />
                     ) : (
                         <Image source={require('../../assets/placeholder.png')} style={styles.avatar} />
                     )}
+                    <AppText style={[styles.value, { color: 'white', textAlign: 'center' }]}>{userData?.name}</AppText>
+                </View>
+            </View>
+            {loading ? (
+                <Loading />) : <ScrollView>
+                <View style={styles.container}>
 
-                    <Text style={styles.label}>Skills:</Text>
-                    <Text style={styles.value}>{userData?.skills ? userData?.skills : 'Not added yet'}</Text>
-
-                    <TouchableOpacity style={styles.uploadButton} onPress={() => navigation.navigate('SkillUpload')}>
-                        <Text style={styles.uploadText}>Upload Skill Video</Text>
-                    </TouchableOpacity>
+                    <AppText style={styles.label} font='bold'>My Skills:</AppText>
+                    <AppText style={styles.value}>{userData?.skills ? userData?.skills : 'Not added yet'}</AppText>
 
                     <AvailabilityToggle />
-
                     <EchoLike userId={user?.uid} />
+                    <MyButton title={'Watch Mazdoor TV'} onPress={() => navigation.navigate('MazdurTV')} />
 
+                    <SkillUploadScreen />
 
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>My Skill Videos</Text>
+                    <AppText style={{ fontSize: 18, marginBottom: 10 }} font='bold'>My Skill Videos</AppText>
                     {videos.length === 0 ? (
-                        <Text>No videos uploaded yet.</Text>
+                        <AppText style={{ textAlign: 'center' }}>No videos uploaded yet.</AppText>
                     ) : (
-                        <>
-                            <FlatList
-                                data={videos}
-                                keyExtractor={(item, index) => index.toString()}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.listContainer}
-                                renderItem={({ item, index }) => {
-                                    const isPlaying = currentPlaying === index;
-                                    return (
-                                        <Pressable style={styles.card} onPress={() => togglePlay(index)}>
-                                            <Video
-                                                source={{ uri: item }}
-                                                style={styles.video}
-
-                                                paused={!isPlaying}
-                                                resizeMode="cover"
-                                                onError={(e) => console.log('Video error:', e)}
-                                            />
-
-                                            <PlayIcon
-                                                name={!isPlaying && 'play'}
-                                                size={50}
-                                                color="white"
-                                                style={{ position: 'absolute', alignSelf: 'center', top: '40%', }}
-                                            />
-                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10 }}>
-                                                <Text style={styles.caption}>Skill Video #{index + 1}</Text>
-                                                <TouchableOpacity onPress={() => deleteSkillVideo(item)}>
-                                                    <Icon name="delete" size={24} color="red" />
-                                                </TouchableOpacity>
-                                            </View>
-                                        </Pressable>
-                                    )
-
-                                }}
-                            />
-
-
-
-                        </>
+                        // null
+                        <HorizontalVideoCarousel videos={videos} setVideos={setVideos} />
                     )}
                 </View>
+                {/* Banner Ad */}
+                <View style={{ alignItems: 'center', marginVertical: 20 }}>
+                    <BannerAd
+                        unitId={adUnitId}
+                        size={BannerAdSize.BANNER}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdLoaded={() => console.log('Ad loaded')}
+                        onAdFailedToLoad={(err) => console.log('Banner Ad Error', JSON.stringify(err))}
+
+                    />
+                </View>
             </ScrollView>
+            }
+
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, alignItems: 'center', },
-    heading: { fontSize: 24, fontWeight: 'bold', marginVertical: 20 },
-    profileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
-    label: { fontSize: 16, fontWeight: '600' },
-    value: { fontSize: 16, marginBottom: 10 },
+    container: { flex: 1, padding: 20, gap: 10 },
+    // heading: { fontSize: 24, marginVertical: 20 },
+    // profileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
+    // label: { fontSize: 16, },
+    // value: { fontSize: 16 },
     uploadButton: {
         backgroundColor: '#052E5F',
-        padding: 10,
+        padding: 15,
+        width: '100%',
         borderRadius: 6,
         marginVertical: 10,
     },
-    uploadText: { color: 'white', fontWeight: 'bold' },
+    uploadText: { color: 'white', textAlign: 'center' },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -189,7 +149,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'tomato',
         borderRadius: 6,
     },
-    logoutText: { color: 'white', fontWeight: 'bold' },
+    logoutText: { color: 'white', },
 
     avatar: {
         width: 100,
@@ -219,6 +179,24 @@ const styles = StyleSheet.create({
         padding: 10,
         fontSize: 14,
         color: '#334155',
+    },
+
+    header: {
+        backgroundColor: '#052E5F',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'space-between',
+        borderBottomRightRadius: 70,
+        padding: 24,
+        width: '100%',
+        height: 150
+
+    },
+
+    headerTitle: {
+        fontSize: 28,
+        color: 'white',
+        marginTop: -10,
     },
 
 });

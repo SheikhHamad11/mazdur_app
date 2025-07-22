@@ -16,7 +16,7 @@ export default function Routes() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false); // hide splash after 1.5 seconds
-    }, 1500);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 

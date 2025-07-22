@@ -1,20 +1,21 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
+import AppText from './AppText';
 
-export default function CommonButton({ title, onPress }) {
+export default function CommonButton({ title, onPress, disabled }) {
     return (
-        <TouchableOpacity style={styles.button} onPress={onPress}>
+        <TouchableOpacity style={styles.button} onPress={onPress} disabled={disabled}>
             <Text style={styles.buttonText}>{title}</Text>
         </TouchableOpacity>
     )
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 30 },
+
+    title: { fontSize: 24, marginBottom: 30 },
     button: {
         backgroundColor: '#052E5F',
-        padding: 15,
+        padding: 10,
         borderRadius: 10,
         marginBottom: 15,
         width: '100%',

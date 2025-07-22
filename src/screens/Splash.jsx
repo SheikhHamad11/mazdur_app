@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Image, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Image, Text, StyleSheet, Animated, Easing, StatusBar } from 'react-native';
+import AppText from '../components/AppText';
 
 export default function SplashScreen({ navigation }) {
     const slideAnim = useRef(new Animated.Value(-200)).current; // start above the screen
@@ -30,6 +31,7 @@ export default function SplashScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+            <StatusBar backgroundColor={'white'} barStyle={'dark-content'} />
             <Animated.Image
                 source={require('../assets/mazdur.png')}
                 style={[
@@ -40,8 +42,8 @@ export default function SplashScreen({ navigation }) {
                     },
                 ]}
             />
-            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
-                Connecting Laborers
+            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]} font='bold'>
+                Connecting Labours
             </Animated.Text>
             <Animated.Text style={[styles.tagline1, { opacity: fadeAnim }]}>
                 With Work Worldwide
@@ -65,13 +67,12 @@ const styles = StyleSheet.create({
     tagline: {
         marginTop: 20,
         fontSize: 26,
-        fontWeight: '600',
-        color: '#444',
-        textAlign: 'center',
+        fontFamily: 'Metropolis-Bold',
+
     },
     tagline1: {
         fontSize: 18,
-        color: '#444',
-        textAlign: 'center',
+        fontFamily: 'Metropolis-Medium',
+
     },
 });

@@ -9,6 +9,9 @@ import LaborSearchScreen from '../screens/Employer/LabourSearch';
 import PostJobScreen from '../screens/Employer/PostJob';
 import MazdoorTV from '../screens/LabourScreens/MazdurTV';
 import EditProfile from '../screens/LabourScreens/EditProfile';
+import EditJobScreen from '../screens/Employer/EditJobScreen';
+import NotificationsScreen from '../screens/LabourScreens/Notifications';
+import LabourProfileScreen from '../screens/LabourScreens/LabourProfile';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -16,9 +19,12 @@ export default function EmployerStack() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="EmployerTabs" component={EmployerTabs} />
-            <Stack.Screen name="PostJob" component={PostJobScreen} options={{ title: 'Post a Job' }} />
-            <Tab.Screen name="EditProfile" component={EditProfile} />
-            <Tab.Screen name="MazdurTV" component={MazdoorTV} />
+            <Stack.Screen name="PostJob" component={PostJobScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfile} />
+            <Stack.Screen name="LabourProfile" component={LabourProfileScreen} />
+            <Stack.Screen name="EditJobScreen" component={EditJobScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="MazdurTV" component={MazdoorTV} />
         </Stack.Navigator>
     );
 }
@@ -26,13 +32,13 @@ export default function EmployerStack() {
 const EmployerTabs = () => {
     return (
         <Tab.Navigator
-            initialRouteName="EmployerDashboard"
+            initialRouteName="Dashboard"
             screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
-                    if (route.name === 'EmployerDashboard') {
+                    if (route.name === 'Dashboard') {
                         iconName = focused ? 'home' : 'home-outline';
-                    } else if (route.name === 'LabourSearch') {
+                    } else if (route.name === 'Labour Search') {
                         iconName = focused ? 'person' : 'person-outline';
 
                     } else if (route.name === 'Settings') {
@@ -41,7 +47,7 @@ const EmployerTabs = () => {
                     else if (route.name === 'MazdurTV') {
                         iconName = focused ? 'tv' : 'tv-outline';
                     }
-                    else if (route.name === 'JobsPosted') {
+                    else if (route.name === 'Jobs Posted') {
                         iconName = focused ? 'briefcase' : 'briefcase-outline';
                     }
 
@@ -52,15 +58,17 @@ const EmployerTabs = () => {
                 tabBarInactiveTintColor: 'gray',
                 tabBarStyle: {
                     backgroundColor: 'white',
-                    paddingBottom: 10,
+                },
+                tabBarLabelStyle: {
+                    fontFamily: 'Metropolis-Medium',
                 },
                 headerShown: false,
                 tabBarHideOnKeyboard: true,
             })}
         >
-            <Tab.Screen name="EmployerDashboard" component={EmployerDashboard} />
-            <Tab.Screen name="JobsPosted" component={MyPostedJobsScreen} />
-            <Tab.Screen name="LabourSearch" component={LaborSearchScreen} />
+            <Tab.Screen name="Dashboard" component={EmployerDashboard} />
+            <Tab.Screen name="Jobs Posted" component={MyPostedJobsScreen} />
+            <Tab.Screen name="Labour Search" component={LaborSearchScreen} />
             <Tab.Screen name="Settings" component={LaborerSettings} />
         </Tab.Navigator>
 

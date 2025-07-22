@@ -3,6 +3,7 @@ import { View, Text, Switch, Alert } from 'react-native';
 import { doc, getFirestore, onSnapshot, updateDoc } from '@react-native-firebase/firestore';
 import { useAuth } from '../../components/AuthContext';
 import { getAuth } from '@react-native-firebase/auth';
+import AppText from '../../components/AppText';
 
 export default function AvailabilityToggle() {
     const { user, userData } = useAuth();
@@ -39,8 +40,8 @@ export default function AvailabilityToggle() {
     if (loading) return null;
 
     return (
-        <View style={{ padding: 16, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 18 }}>Daily Availability</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 }}>
+            <AppText style={{ fontSize: 18 }} font='bold'>Daily Availability</AppText>
             <Switch
 
                 value={available}
@@ -48,7 +49,7 @@ export default function AvailabilityToggle() {
                 trackColor={{ false: '#ccc', true: '#4caf50' }}
                 thumbColor={available ? '#fff' : '#fff'}
             />
-            <Text style={{ marginTop: 10 }}>{available ? 'You are Available' : 'Not Available Today'}</Text>
+            {/* <Text style={{ marginTop: 10 }}>{available ? 'You are Available' : 'Not Available Today'}</Text> */}
         </View>
     );
 }

@@ -5,8 +5,9 @@ import CommonHeader from '../../components/CommonHeader';
 import { useAuth } from '../../components/AuthContext';
 import { getFirestore, collection, query, where, getDocs } from '@react-native-firebase/firestore';
 import Loading from '../../components/Loading';
+import AppText from '../../components/AppText';
 export default function LaborSearchScreen({ navigation }) {
-    const { user } = useAuth()
+    const { user, userData } = useAuth()
     const [queiry, setQueiry] = useState('');
     const [laborers, setLaborers] = useState([]);
     const [filtered, setFiltered] = useState([]);
@@ -74,12 +75,12 @@ export default function LaborSearchScreen({ navigation }) {
 
             await addDoc(collection(db, 'jobsRequests'), {
                 labourId,
-                employerId: user.uid,
+                employerName: userData.name,
                 status: 'pending',
                 date: serverTimestamp(),
             });
             // Mark this labourId as requested
-            setSentRequests(prev => ({ ...prev, [labourId]: true }));
+            setSentRequests(prev => ({ ...prev, [labourId]: 'pending' }));
 
 
             alert('Job request sent!');
@@ -88,13 +89,45 @@ export default function LaborSearchScreen({ navigation }) {
         }
     };
 
+    const renderLaborer = ({ item }) => (
 
-    if (loading) return <Loading />;
+        <View style={styles.card}>
+            <View style={{ flexDirection: 'row', gap: 5 }}>
+                <View style={{ width: '30%' }}>
+                    {item?.photoURL ? (
+                        <Image source={{ uri: item?.photoURL }} style={styles.image} />
+                    ) : (
+                        <Image source={require('../../assets/placeholder.png')} style={styles.image} />
+                    )}
+                </View>
+                <View style={{ width: '70%' }}>
+                    <AppText style={styles.name} font='bold'>Name:{item.name}</AppText>
+                    <AppText>Email: {item?.email}</AppText>
+                    <AppText>Skills: {item?.skills}</AppText>
+                    <AppText>Phone: {item?.number}</AppText>
+                    <AppText>Address: {item?.address}</AppText>
+                    <AppText>Status: {item?.available ? 'Available' : 'Not Available'}</AppText>
+                </View>
+            </View >
+
+            <TouchableOpacity
+                style={[styles.button, { backgroundColor: sentRequests[item.id] === 'pending' ? 'gray' : sentRequests[item.id] === 'accepted' ? 'green' : '#007bff' }]}
+                onPress={() => sendJobRequest(item.id)}
+                disabled={sentRequests[item.id] === 'pending' || sentRequests[item.id] === 'accepted'} // ✅ explicit boolean
+            >
+                <AppText style={styles.buttonText}> {sentRequests[item.id] === 'accepted' ? 'Accepted' : sentRequests[item.id] === 'pending' ? 'Requested' : 'Send Request'}</AppText>
+            </TouchableOpacity>
+        </View >
+    );
+
+
+    // if (loading) return <Loading />;
 
     return (
         <>
             <CommonHeader title={'LabourSearch'} />
-            <View style={styles.container}>
+            {loading ? (
+                <Loading />) : <View style={styles.container}>
 
                 <TextInput
                     placeholder="Search by skill or name"
@@ -105,50 +138,23 @@ export default function LaborSearchScreen({ navigation }) {
                 />
 
                 {filtered.length === 0 ? (
-                    <Text style={styles.noResult}>No matching laborers found.</Text>
+                    <AppText style={styles.noResult}>No matching laborers found.</AppText>
                 ) : (
                     <FlatList
                         data={filtered}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => renderLaborer({ item, sendJobRequest, sentRequests })}
+                        renderItem={renderLaborer}
                         contentContainerStyle={{ paddingBottom: 20 }}
 
                     />
                 )}
-            </View>
+            </View>}
+
         </>
     );
 }
 
-const renderLaborer = ({ item, navigation, sendJobRequest, sentRequests }) => (
 
-    <View style={styles.card}>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-            <>
-                {item?.photoURL ? (
-                    <Image source={{ uri: item?.photoURL }} style={styles.image} />
-                ) : (
-                    <Image source={require('../../assets/placeholder.png')} style={styles.image} />
-                )}
-            </>
-            <View>
-                <Text style={styles.name}>Labour Name:{item.name}</Text>
-                <Text>Email: {item?.email}</Text>
-                <Text>Skills: {item?.skills}</Text>
-
-                <Text>Status: {item?.available ? 'Available' : 'Unavailable'}</Text>
-            </View>
-        </View>
-
-        <TouchableOpacity
-            style={[styles.button, { backgroundColor: sentRequests[item.id] === 'pending' ? '#007bff' : 'gray' }]}
-            onPress={() => sendJobRequest(item.id)}
-            disabled={sentRequests[item.id] === 'pending' || sentRequests[item.id] === 'accepted'} // ✅ explicit boolean
-        >
-            <Text style={styles.buttonText}> {sentRequests[item.id] === 'accepted' ? 'Accepted' : sentRequests[item.id] === 'pending' ? 'Requested' : 'Send Request'}</Text>
-        </TouchableOpacity>
-    </View>
-);
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 16 },
     searchInput: {
@@ -157,6 +163,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 12,
         borderColor: '#ccc',
+        fontFamily: 'Metropolis-Light',
     },
     card: {
         padding: 16,
@@ -166,10 +173,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
     },
-    name: { fontSize: 18, fontWeight: 'bold' },
+
     button: {
         marginTop: 10,
-
         padding: 10,
         borderRadius: 8,
     },

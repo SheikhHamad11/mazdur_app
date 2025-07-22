@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import AppText from '../../components/AppText';
 
 export default function EchoLike({ userId }) {
     const [likeCount, setLikeCount] = useState(0);
@@ -35,10 +36,11 @@ export default function EchoLike({ userId }) {
     }
 
     return (
-        <View style={{ padding: 10 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
-                Echo Likes: {likeCount}
-            </Text>
+        <View style={{ marginBottom: 10 }}>
+            <AppText style={{ fontSize: 18 }} font='bold'>
+                Echo Likes: 1{likeCount}
+            </AppText>
+
         </View>
     );
 }

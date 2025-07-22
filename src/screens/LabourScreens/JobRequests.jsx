@@ -5,6 +5,7 @@ import { useAuth } from '../../components/AuthContext'; // Assuming you use a cu
 import Loading from '../../components/Loading';
 import CommonHeader from '../../components/CommonHeader';
 import { firebase } from '@react-native-firebase/auth';
+import AppText from '../../components/AppText';
 
 export default function JobRequestsScreen() {
     const { user } = useAuth();
@@ -65,50 +66,53 @@ export default function JobRequestsScreen() {
         }
     };
 
-    if (loading) {
-        return (
-            <Loading />
-        );
-    }
+    // if (loading) {
+    //     return (
+    //         <Loading />
+    //     );
+    // }
 
     return (
         <>
             <CommonHeader title={'Job Requests'} />
-            <FlatList
-                onRefresh={onRefresh}
-                refreshing={refreshing}
-                contentContainerStyle={{ padding: 20 }}
-                data={requests}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.card}>
-                        <Text style={styles.title}>Skill: {item?.jobTitle}</Text>
-                        <Text>Employer ID: {item?.employerId}</Text>
-                        <Text>Location: {item?.location}</Text>
-                        <Text>Salary: {item?.salary}</Text>
-                        <Text>Date: {item.date?.toDate().toLocaleString()}</Text>
-                        <Text>Status: {item?.status}</Text>
+            {loading ? <Loading /> :
+                <FlatList
+                    onRefresh={onRefresh}
+                    refreshing={refreshing}
+                    contentContainerStyle={{ padding: 20 }}
+                    data={requests}
+                    keyExtractor={item => item.id}
+                    renderItem={({ item }) => (
+                        <View style={styles.card}>
+                            {/* <Text style={styles.title}>Skill: {item?.jobTitle}</Text> */}
+                            <AppText style={styles.title} font='bold'>Employer Name: {item?.employerName}</AppText>
+                            {/* <AppTextLocation: {item?.location}</Text> */}
+                            {/* <AppTextSalary: {item?.salary}</Text> */}
+                            <AppText>Date: {item.date?.toDate().toLocaleString()}</AppText>
+                            <AppText>Status: {item?.status}</AppText >
 
-                        {item?.status === 'pending' && (
-                            <View style={styles.buttonRow}>
-                                <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'accepted')} style={styles.acceptBtn}>
-                                    <Text style={styles.btnText}>Accept</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'rejected')} style={styles.rejectBtn}>
-                                    <Text style={styles.btnText}>Reject</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                    </View>
-                )}
-                ListEmptyComponent={
-                    <View style={{ alignItems: 'center', marginTop: 50 }}>
-                        <Text style={{ fontSize: 16, color: 'gray' }}>
-                            No job requests yet. Please check back later!
-                        </Text>
-                    </View>
-                }
-            />
+                            {item?.status === 'pending' && (
+                                <View style={styles.buttonRow}>
+                                    <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'accepted')} style={styles.acceptBtn}>
+                                        <AppText style={styles.btnText}>Accept</AppText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'rejected')} style={styles.rejectBtn}>
+                                        <AppText style={styles.btnText}>Reject</AppText>
+                                    </TouchableOpacity>
+                                </View>
+                            )
+                            }
+                        </View >
+                    )}
+                    ListEmptyComponent={
+                        <View style={{ alignItems: 'center', marginTop: 50 }}>
+                            <Text style={{ fontSize: 16, color: 'gray' }}>
+                                No job requests yet. Please check back later!
+                            </Text>
+                        </View >
+                    }
+                />
+            }
         </>
     );
 }
@@ -122,7 +126,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     title: {
-        fontWeight: 'bold',
+
         fontSize: 16,
         marginBottom: 5,
     },
@@ -147,6 +151,6 @@ const styles = StyleSheet.create({
     btnText: {
         textAlign: 'center',
         color: '#fff',
-        fontWeight: 'bold',
+
     },
 });

@@ -3,17 +3,20 @@ import { TextInput, Text, ScrollView, Image, Pressable, ActivityIndicator, Alert
 import { styles } from './RegisterScreen';
 import { getAuth, signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
+import AppText from '../../components/AppText';
+import MyInput from '../../components/MyInput';
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setloading] = useState(false)
 
-
-
     const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in all fields.');
+            return;
+        }
         try {
             setloading(true);
-
             const auth = getAuth();
             const firestore = getFirestore();
 
@@ -34,13 +37,17 @@ export default function LoginScreen({ navigation }) {
                 } else {
                     console.warn('Role not assigned!');
                 }
+                setloading(false)
             } else {
+                setloading(false)
                 console.warn('User data not found in Firestore!');
-                Alert.alert('Error', 'User  not found ')
+                Alert.alert('Error', 'User  not found ');
             }
 
         } catch (error) {
+            setloading(false)
             console.error('Login error:', error.message);
+            Alert.alert('Error', error.message)
         } finally {
             setloading(false);
         }
@@ -51,26 +58,21 @@ export default function LoginScreen({ navigation }) {
 
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps={'always'}>
             <Image source={require('../../assets/mazdur.png')} style={styles.image} />
-            <Text style={styles.title}>Login Page</Text>
-            <Text style={styles.label}>Enter Email</Text>
-            <TextInput placeholder="123@gmail.com" placeholderTextColor={'gray'} value={email} onChangeText={setEmail} style={styles.input} />
-            <Text style={styles.label}>Enter Password</Text>
-            <TextInput placeholder="e.g#123456" placeholderTextColor={'gray'} secureTextEntry value={password} onChangeText={setPassword} style={styles.input} />
-
-
+            <AppText style={styles.title} font='bold'>Login Page</AppText>
+            <MyInput header='Email' placeholder='Enter Your Email' placeholderTextColor={'gray'} value={email} onChangeText={setEmail} />
+            <MyInput header='Password' placeholder='Enter Your Password' placeholderTextColor={'gray'} isPassword value={password} onChangeText={setPassword} isEye={true} />
 
             <Pressable style={styles.buttonContainer} onPress={handleLogin} >{loading ? (
                 <ActivityIndicator color="#fff" />
             ) : (
-                <Text style={{ color: 'white', textAlign: 'center' }}>Login</Text>
+                <AppText style={{ color: 'white', textAlign: 'center' }}>Login</AppText>
             )}</Pressable>
 
-            <Text style={{ color: 'black', textAlign: 'center', marginTop: 20 }}>Don't have an account</Text>
-            <Pressable style={styles.buttonContainer} onPress={() => navigation.navigate('Register')} >
-
-                <Text style={{ color: 'white', textAlign: 'center' }}>Sign Up Here</Text>
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('Register')} >
+                <AppText >Don't have an account? </AppText>
+                <AppText font='bold' >Sign Up Here</AppText>
             </Pressable>
-        </ScrollView>
+        </ScrollView >
 
     );
 }

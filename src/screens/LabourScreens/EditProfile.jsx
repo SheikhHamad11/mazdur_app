@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator, ScrollView } from 'react-native';
 import firestore, { doc, getDoc, getFirestore } from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useAuth } from '../../components/AuthContext'; // make sure you have this hook set up
 import CommonHeader from '../../components/CommonHeader';
+import AppText from '../../components/AppText';
 
 export default function EditProfile() {
     const { user, userData } = useAuth();
     const [skills, setSkills] = useState('');
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
+    const [number, setNumber] = useState('')
     const [imageUri, setImageUri] = useState('');
     const [uploading, setUploading] = useState(false);
 
@@ -26,6 +28,7 @@ export default function EditProfile() {
                 setEmail(data?.email || '');
                 setSkills(data?.skills || '');
                 setImageUri(data?.photoURL || '');
+                setNumber(data?.number || '');
                 // Use data here
             } else {
                 console.warn('No such document!');
@@ -57,6 +60,7 @@ export default function EditProfile() {
             name,
             skills,
             photoURL,
+            number
         });
 
         // Optional: Refetch the updated data
@@ -72,10 +76,8 @@ export default function EditProfile() {
 
     return (
         <>
-            <CommonHeader title={'Edit profile'} />
-            <View style={styles.container}>
-
-                {/* <Text style={styles.title}>Edit Profile</Text> */}
+            <CommonHeader title={'Edit profile'} isBack={true} />
+            <ScrollView style={styles.container}>
 
                 <TouchableOpacity onPress={pickImage}>
                     {imageUri ? (
@@ -83,8 +85,9 @@ export default function EditProfile() {
                     ) : (
                         <Image source={require('../../assets/placeholder.png')} style={styles.avatar} />
                     )}
+                    <AppText style={styles.title}>Change Image 📷</AppText>
                 </TouchableOpacity>
-                <Text style={styles.label}>Name:</Text>
+                <AppText style={styles.label}>Name:</AppText>
 
                 <TextInput
                     style={styles.input}
@@ -93,7 +96,7 @@ export default function EditProfile() {
                     value={name}
                     onChangeText={setName}
                 />
-                <Text style={styles.label}>Email:</Text>
+                <AppText style={styles.label}>Email:</AppText>
                 <TextInput
                     editable={false}
                     style={[styles.input, { backgroundColor: 'lightgray' }]}
@@ -104,27 +107,37 @@ export default function EditProfile() {
                 />
                 {userData?.role == 'labour' &&
                     <>
-                        <Text style={styles.label}>Skills</Text>
+                        <AppText style={styles.label}>Skills:</AppText>
                         <TextInput
                             style={styles.input}
                             placeholder="Skills (e.g., Masonry, Electrician)"
                             placeholderTextColor={'gray'}
                             value={skills}
                             onChangeText={setSkills}
+
+                        />
+                        <AppText style={styles.label}>Number:</AppText>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Number"
+                            placeholderTextColor={'gray'}
+                            value={number}
+                            onChangeText={setNumber}
                         />
                     </>
                 }
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={uploading}>
-                    <Text style={styles.saveButtonText}>{uploading ? <ActivityIndicator size={20} color={'white'} /> : 'Save Changes'}</Text>
+                    <AppText style={styles.saveButtonText}>{uploading ? <ActivityIndicator size={20} color={'white'} /> : 'Save Changes'}</AppText>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         </>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+    title: { fontSize: 14, textAlign: 'center', marginBottom: 20 },
     input: {
         color: 'black',
         borderWidth: 1,
@@ -132,6 +145,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 12,
         marginBottom: 15,
+        fontFamily: "Metropolis-Light"
     },
     avatar: {
         width: 100,
@@ -155,6 +169,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 10,
         alignItems: 'center',
+        marginBottom: 30
     },
     label: {
         alignSelf: 'flex-start',
@@ -163,5 +178,5 @@ const styles = StyleSheet.create({
         marginTop: 12,
         color: '#333',
     },
-    saveButtonText: { color: '#fff', fontWeight: 'bold' },
+    saveButtonText: { color: '#fff', },
 });

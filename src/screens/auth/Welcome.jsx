@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Pressable } from 'react-native';
+import AppText from '../../components/AppText';
+import MyButton from '../../components/MyButton';
 
 export default function WelcomeScreen({ navigation }) {
     const [language, setLanguage] = useState('English');
@@ -12,20 +14,22 @@ export default function WelcomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <Image source={require('../../assets/mazdur.png')} style={{ width: 300, height: 300 }} />
-            <Text style={styles.title}>Welcome to Mazdur App</Text>
-            <Text style={styles.subtitle}>Select your role:</Text>
+            <AppText style={styles.title} font='bold'>Welcome to Mazdur App</AppText>
+            <AppText style={styles.subtitle}>Select your role:</AppText>
 
 
             <View style={styles.buttonGroup}>
-                <TouchableOpacity style={styles.button} onPress={() => handleRoleSelect('labour')}>
-                    <Text style={styles.buttonText}>Sign Up as Labour</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleRoleSelect('employer')}>
-                    <Text style={styles.buttonText}>Sign Up as Employer</Text>
-                </TouchableOpacity>
+                <MyButton onPress={() => handleRoleSelect('labour')} title="Sign Up as Labour" />
+                <MyButton onPress={() => handleRoleSelect('employer')} title="Sign Up as Employer" />
+
             </View>
 
-            <Text style={styles.languageLabel}>Select Language:</Text>
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('Login')} >
+                <AppText >Already have account? </AppText>
+                <AppText font='bold' >Login Here</AppText>
+            </Pressable>
+
+            {/* <Text style={styles.languageLabel}>Select Language:</Text>
             <View style={styles.languageGroup}>
                 {['English', 'اردو', 'हिन्दी'].map((lang) => (
                     <TouchableOpacity key={lang} onPress={() => Alert.alert('Change Language', 'Coming Soon')} style={[
@@ -35,7 +39,7 @@ export default function WelcomeScreen({ navigation }) {
                         <Text style={[styles.languageText, language === lang && { color: 'white' }]}>{lang}</Text>
                     </TouchableOpacity>
                 ))}
-            </View>
+            </View> */}
         </View>
     );
 }
@@ -50,9 +54,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 26,
-        fontWeight: 'bold',
         marginBottom: 16,
-        color: '#333',
     },
     subtitle: {
         fontSize: 18,
@@ -70,9 +72,18 @@ const styles = StyleSheet.create({
         width: 220,
         alignItems: 'center',
     },
+    button2: {
+        width: '100%',
+        marginTop: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        // backgroundColor: '#052E5F',
+        borderRadius: 8
+    },
     buttonText: {
         color: '#FFF',
-        fontWeight: '600',
+
     },
     languageLabel: {
         fontSize: 16,

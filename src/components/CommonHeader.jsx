@@ -1,16 +1,36 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import React from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
-export default function CommonHeader({ title, isfire }) {
-    // console.log('title', title);
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import AppText from './AppText';
+export default function CommonHeader({ title, isBack = true }) {
+    const navigation = useNavigation();
+    // console.log(title);
+
     return (
         <View style={styles.header}>
-            <Text style={[styles.headerTitle, { textTransform: 'uppercase' }]}>
-                {title}
-            </Text>
-            {/* Left Blue Expanded Shape */}
-            <View style={styles.blueExpansion} />
-            {isfire === true && <Icon name="person" size={25} color="white" style={{ marginTop: -10 }} />}
+            {/* Left Section (Back Icon) */}
+            <View style={styles.side}>
+                {isBack && (
+                    <Icon
+                        name='chevron-left'
+                        size={35}
+                        color='white'
+                        onPress={() => navigation.goBack()}
+                    />
+                )}
+            </View>
+
+            {/* Center Section (Title) */}
+            <View style={styles.center}>
+                <AppText
+                    children={title}
+                    style={{ textAlign: 'center', fontSize: 22, color: 'white', fontWeight: '500' }}
+                />
+            </View>
+
+            {/* Right Section (Empty for symmetry) */}
+            <View style={styles.side} />
         </View>
     );
 }
@@ -19,28 +39,18 @@ const styles = StyleSheet.create({
     header: {
         backgroundColor: '#052E5F',
         flexDirection: 'row',
-        justifyContent: 'center',
-        borderBottomRightRadius: 50,
-        padding: 24,
-        // elevation: 1,
-        gap: 10,
-        width: '100%',
-        // flex: 1,
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 18,
     },
-    // blueExpansion: {
-    //   position: 'absolute',
-    //   bottom: -50,
-    //   left: 0,
-    //   width: 50, // Adjust width for the desired look
-    //   height: 50, // Adjust height for the desired look
-    //   backgroundColor: '#152B43', // Blue color for the shape
-    //   borderBottomRightRadius: 120, // Rounded shape effect
-    //   zIndex: 0, // Keep it behind the header content
-    // },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 700,
-        color: 'white',
-        marginTop: -10,
+    side: {
+        width: 40, // fixed width for icon and symmetry
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+    },
+    center: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

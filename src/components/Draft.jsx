@@ -389,7 +389,7 @@ const VideoItem = ({
                                 size={35}
                                 color={isLiked ? 'red' : 'white'}
                             />
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                            <Text style={{ color: 'white', }}>
                                 {likeCounts[item.id] || 0}
                             </Text>
                         </Animated.View>
@@ -400,7 +400,7 @@ const VideoItem = ({
                         onPress={() => onCommentPress(item.id)}
                         style={styles.commentButton}>
                         <Icon name="reader" size={30} color="white" />
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                        <Text style={{ color: 'white', }}>
                             {commentCounts[item.id] || 0}
                         </Text>
                     </Pressable>
@@ -414,7 +414,7 @@ const VideoItem = ({
                             size={30}
                             color={isBookmarked[item.id] ? 'yellow' : 'white'}
                         />
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                        <Text style={{ color: 'white', }}>
                             {bookmarkCounts[item.id] || 0}
                         </Text>
                     </Pressable>
@@ -422,7 +422,7 @@ const VideoItem = ({
                     {/* Bookmark Button */}
                     <Pressable onPress={onShare} style={styles.shareButton}>
                         <Icon name="arrow-redo" size={30} color={'white'} />
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>100</Text>
+                        <Text style={{ color: 'white', }}>100</Text>
                     </Pressable>
                 </View>
             </View>
@@ -576,6 +576,6 @@ const styles = StyleSheet.create({
     },
     submitText: {
         color: 'white',
-        fontWeight: 'bold',
-    },
+        ,
+},
 });

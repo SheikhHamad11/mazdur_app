@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, Image, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore';
+import firestore, { serverTimestamp } from '@react-native-firebase/firestore';
 import { useAuth } from '../../components/AuthContext';
+import AppText from '../../components/AppText';
+import MyInput from '../../components/MyInput';
 
 export default function RegisterScreen({ navigation, route }) {
     const { role } = route.params || {};
+    console.log('role', role)
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [cnic, setCnic] = useState('');
-    const [phone, setPhone] = useState('');
-    const [otp, setOtp] = useState('');
-    const [confirmResult, setConfirmResult] = useState(null);
+    const [skills, setSkills] = useState('');
+    // const [cnic, setCnic] = useState('');
+    // const [phone, setPhone] = useState('');
+    // const [otp, setOtp] = useState('');
+    // const [confirmResult, setConfirmResult] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [name, setName] = useState('')
-    const { setUser } = useAuth()
+    const [name, setName] = useState('');
+    const [number, setNumber] = useState('');
+    const [address, setAddress] = useState('')
+
 
     // const sendOtp = async () => {
     //     if (!/^[0-9]{5}-[0-9]{7}-[0-9]{1}$/.test(cnic)) {
@@ -40,11 +46,10 @@ export default function RegisterScreen({ navigation, route }) {
         // Email regex for basic validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !number || !skills || !address) {
             Alert.alert('Error', 'Please fill in all fields.');
             return;
         }
-
         if (!emailRegex.test(email)) {
             Alert.alert('Invalid Email', 'Please enter a valid email address.');
             return;
@@ -64,81 +69,63 @@ export default function RegisterScreen({ navigation, route }) {
                 email,
                 name,
                 role,
-                createdAt: firestore.FieldValue.serverTimestamp(),
+                skills,
+                number,
+                address,
+                createdAt: serverTimestamp(),
             });
             setLoading(false)
             console.log('User registered and role saved!');
             // navigation.navigate('Login'); // or 'Home'
         } catch (error) {
+            Alert.alert('Error', error.message)
             setLoading(false)
             console.error('Signup error:', error.message);
         }
     };
-
-
-
     return (
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps={'always'}>
+        <ScrollView contentContainerStyle={styles.container} nestedScrollEnabled={true} showsVerticalScrollIndicator={false} scrollEnabled={true} keyboardShouldPersistTaps={'always'}>
             <Image source={require('../../assets/mazdur.png')} style={styles.image} />
-            <Text style={styles.title}>Signup Page</Text>
-            <Text style={styles.label}>Enter Name</Text>
-            <TextInput placeholder="e.g John" placeholderTextColor={'gray'} value={name} onChangeText={setName} style={styles.input} />
-            <Text style={styles.label}>Enter Email</Text>
-            <TextInput placeholder="123@gmail.com" placeholderTextColor={'gray'} value={email} onChangeText={setEmail} style={styles.input} />
-            <Text style={styles.label}>Enter Password</Text>
-            <TextInput placeholder="e.g 123456" placeholderTextColor={'gray'} secureTextEntry value={password} onChangeText={setPassword} style={styles.input} />
-            {/* <Text style={styles.label}>Enter CNIC</Text>
-            <TextInput
-                placeholder="12345-6789012-3"
-                placeholderTextColor={'gray'}
-                value={cnic}
-                maxLength={15}
-                onChangeText={handleCnicChange}
-                keyboardType="numeric"
-                style={styles.input}
-            />
+            <AppText style={styles.title} font='bold'>Signup Page</AppText>
+            {/* <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} scrollEnabled={true} keyboardShouldPersistTaps={'always'}> */}
+            {role === undefined &&
+                <MyInput header='Role' placeholder='Enter Your Role' placeholderTextColor={'gray'} value={role} />
+            }
 
-            <Text style={styles.label}>Enter Phone (without +92)</Text>
-            <TextInput
-                placeholder="03001234567"
-                placeholderTextColor={'gray'}
-                maxLength={11}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                style={styles.input}
-            /> */}
 
+            <MyInput header='Name' placeholder='Enter Your Name' placeholderTextColor={'gray'} value={name} onChangeText={setName} />
+            <MyInput header='Email' placeholder='Enter Your Email' placeholderTextColor={'gray'} value={email} onChangeText={setEmail} />
+            <MyInput header='Password' placeholder='Enter Your Password' placeholderTextColor={'gray'} isPassword value={password} onChangeText={setPassword} isEye={true} />
+            <MyInput header='Skills' placeholder='Enter Your Skills' placeholderTextColor={'gray'} value={skills} onChangeText={setSkills} />
+            <MyInput header='Address' placeholder='Enter Your Address' placeholderTextColor={'gray'} value={address} onChangeText={setAddress} />
+            <MyInput header='Number' placeholder='Enter Your Mobile Number' placeholderTextColor={'gray'} value={number} onChangeText={setNumber} keyboardType='phone-pad' />
+
+            {/* <MyInput header='CNIC' placeholder='Enter Your CNIC (e.g., 12345-6789012-3)' placeholderTextColor={'gray'} value={cnic} onChangeText={setCnic} /> */}
+            {/* <MyInput header='Phone' placeholder='Enter Your Phone (without +92)' placeholderTextColor={'gray'} value={phone} onChangeText={setPhone} keyboardType="phone-pad" /> */}
 
             <Pressable style={styles.buttonContainer} onPress={handleSignUp} >{loading ? (
                 <ActivityIndicator color="#fff" />
             ) : (
-                <Text style={{ color: 'white', textAlign: 'center' }}>SignUp</Text>
+                <AppText style={{ color: 'white', textAlign: 'center' }}>SignUp</AppText>
             )}</Pressable>
-
-            <Text style={{ color: 'black', textAlign: 'center', marginTop: 20 }}>Already have account</Text>
-            <Pressable style={styles.buttonContainer} onPress={() => navigation.navigate('Login')} >
-                <Text style={{ color: 'white', textAlign: 'center' }}>Login Here</Text>
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('Login')} >
+                <AppText >Already have account? </AppText>
+                <AppText font='bold' >Login Here</AppText>
             </Pressable>
 
-            {confirmResult && (
-                <>
-                    <Text style={styles.label}>Enter OTP</Text>
-                    <TextInput
-                        placeholder="123456"
-                        placeholderTextColor={'gray'}
-                        value={otp}
-                        onChangeText={setOtp}
-                        keyboardType="number-pad"
-                        style={styles.input}
-                    />
-                    <Pressable style={styles.buttonContainer} onPress={verifyOtp} >{loading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={{ color: 'white', textAlign: 'center' }}>Verify OTP</Text>
-                    )}</Pressable>
-                </>
-            )}
+            {/* {confirmResult && (
+                    <>
+                        <MyInput header='OTP' placeholder='Enter Your OTP' placeholderTextColor={'gray'} value={otp} onChangeText={setOtp} keyboardType="number-pad" />
+                        <Pressable style={styles.buttonContainer} onPress={verifyOtp} >{loading ? (
+                            <ActivityIndicator color="#fff" />) : (
+                            <AppText style={{ color: 'white', textAlign: 'center' }}>Verify OTP</AppText>
+                        )}</Pressable>
+                        <Pressable style={styles.button2} onPress={() => setConfirmResult(null)} >
+                            <AppText >Resend OTP</AppText>
+                        </Pressable>
+                    </>
+                )} */}
+            {/* </ScrollView > */}
         </ScrollView>
     );
 };
@@ -147,8 +134,8 @@ export default function RegisterScreen({ navigation, route }) {
 
 export const styles = StyleSheet.create({
     container: {
-        padding: 24,
-        backgroundColor: '#f9f9f9',
+        padding: 20,
+        backgroundColor: 'white',
         flexGrow: 1,
         alignItems: 'center',
     },
@@ -158,23 +145,7 @@ export const styles = StyleSheet.create({
         resizeMode: 'contain',
         // marginBottom: 20,
     },
-    label: {
-        alignSelf: 'flex-start',
-        fontSize: 16,
-        marginBottom: 6,
-        marginTop: 12,
-        color: '#333',
-    },
-    input: {
-        width: '100%',
-        borderBottomWidth: 1,
-        borderBottomColor: '#aaa',
-        paddingVertical: 8,
-        paddingHorizontal: 4,
-        fontSize: 16,
-        marginBottom: 8,
-        color: 'black'
-    },
+
     buttonContainer: {
         width: '100%',
         marginTop: 16,
@@ -182,9 +153,18 @@ export const styles = StyleSheet.create({
         backgroundColor: '#052E5F',
         borderRadius: 8
     },
+    button2: {
+        width: '100%',
+        marginVertical: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        // backgroundColor: '#052E5F',
+        borderRadius: 8
+    },
     title: {
         textAlign: 'center',
-        fontSize: 24, fontWeight: 'bold'
+        fontSize: 24,
     }
 });
 

@@ -3,6 +3,7 @@ import { View, Text, FlatList, ActivityIndicator, StyleSheet, RefreshControl } f
 import firestore from '@react-native-firebase/firestore';
 import { useAuth } from '../components/AuthContext'; // adjust if needed
 import Loading from '../components/Loading';
+import AppText from '../../components/AppText';
 
 export default function HireHistoryScreen() {
     const { user } = useAuth();
@@ -57,19 +58,20 @@ export default function HireHistoryScreen() {
                         <View style={styles.card}>
                             <Text style={styles.jobTitle}>{item.jobTitle}</Text>
                             <Text>Status: {item.status}</Text>
-                            <Text>Payment: Rs. {item.payment}</Text>
+                            <Text>ayment: Rs. {item.payment}</Text>
                             <Text>Date: {new Date(item.date).toDateString()}</Text>
                         </View>
-                    )}
+                    )
+                    }
                 />
             )}
-        </View>
+        </View >
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20 },
-    title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
+    title: { fontSize: 22, marginBottom: 10 },
     noData: { fontSize: 16, color: 'gray' },
     card: {
         backgroundColor: '#f5f5f5',
@@ -77,5 +79,5 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
     },
-    jobTitle: { fontSize: 18, fontWeight: 'bold' },
+    jobTitle: { fontSize: 18, },
 });

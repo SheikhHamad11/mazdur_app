@@ -7,36 +7,46 @@ import SplashScreen from '../screens/Splash';
 import SkillUploadScreen from '../screens/LabourScreens/SkillUpload';
 import Icon from 'react-native-vector-icons/Ionicons';
 import JobRequestsScreen from '../screens/LabourScreens/JobRequests';
-
 import EditProfile from '../screens/LabourScreens/EditProfile';
 import MazdoorTV from '../screens/LabourScreens/MazdurTV';
 import ExploreNewJobs from '../screens/LabourScreens/ExploreNewJobs';
+import BoostProfileScreen from '../screens/LabourScreens/BoostProfile';
+import NotificationsScreen from '../screens/LabourScreens/Notifications';
+import { StatusBar } from 'react-native';
+import LabourProfileScreen from '../screens/LabourScreens/LabourProfile';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export default function LabourStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{ headerShown: false, initialRouteName: 'Splash' }}>
-      <Stack.Screen name="LabourTabs" component={LabourTabs} />
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="SkillUpload" component={SkillUploadScreen} />
-      <Stack.Screen name="ExploreNewJobs" component={ExploreNewJobs} />
-      <Stack.Screen name="EditProfile" component={EditProfile} />
-    </Stack.Navigator>
+    <>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false, initialRouteName: 'Splash' }}>
+        <Stack.Screen name="LabourTabs" component={LabourTabs} />
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="MazdurTV" component={MazdoorTV} />
+        <Stack.Screen name="LabourProfile" component={LabourProfileScreen} />
+        <Stack.Screen name="SkillUpload" component={SkillUploadScreen} />
+        <Stack.Screen name="ExploreNewJobs" component={ExploreNewJobs} />
+        <Stack.Screen name="BoostProfile" component={BoostProfileScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      </Stack.Navigator>
+    </>
+
   );
 }
 
 const LabourTabs = () => {
   return (
     <Tab.Navigator
-      initialRouteName="LabourDashboard"
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          if (route.name === 'LabourDashboard') {
+          if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'History') {
-            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'New Jobs') {
+            iconName = focused ? 'briefcase' : 'briefcase-outline';
 
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
@@ -44,25 +54,26 @@ const LabourTabs = () => {
           else if (route.name === 'MazdurTV') {
             iconName = focused ? 'tv' : 'tv-outline';
           }
-          else if (route.name === 'JobRequest') {
-            iconName = focused ? 'briefcase' : 'briefcase-outline';
+          else if (route.name === 'Job Requests') {
+            iconName = focused ? 'document-text' : 'document-text-outline';
           }
           // You can return any component that you like here!
           return <Icon name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#052E5F',
         tabBarInactiveTintColor: 'gray',
-        tabBarStyle: {
-          backgroundColor: 'white',
-          paddingBottom: 10,
+        tabBarLabelStyle: {
+          marginBottom: 5,
+          fontFamily: 'Metropolis-Medium',
         },
+
         headerShown: false,
         tabBarHideOnKeyboard: true,
       })}
     >
-      <Tab.Screen name="LabourDashboard" component={LabourDashboard} />
-      <Tab.Screen name="MazdurTV" component={MazdoorTV} />
-      <Tab.Screen name="JobRequest" component={JobRequestsScreen} />
+      <Tab.Screen name="Home" component={LabourDashboard} />
+      <Tab.Screen name="New Jobs" component={ExploreNewJobs} />
+      <Tab.Screen name="Job Requests" component={JobRequestsScreen} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
 

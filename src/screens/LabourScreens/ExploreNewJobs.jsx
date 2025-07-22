@@ -1,41 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import firestore, { collection, getDocs, getFirestore, orderBy, query, where } from '@react-native-firebase/firestore';
-import { useAuth } from '../../components/AuthContext'; // Adjust if your path is different
+import {
+    View,
+    Text,
+    FlatList,
+    ActivityIndicator,
+    StyleSheet,
+    TouchableOpacity,
+} from 'react-native';
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    doc,
+    updateDoc,
+    deleteDoc,
+    getFirestore,
+    increment,
+    orderBy,
+} from '@react-native-firebase/firestore';
+import { useAuth } from '../../components/AuthContext';
 import CommonHeader from '../../components/CommonHeader';
-import auth, { getAuth } from '@react-native-firebase/auth';
 import Loading from '../../components/Loading';
-import CommonButton from '../../components/CommonButton';
+import AppText from '../../components/AppText';
+
 export default function MyPostedJobsScreen() {
     const { user } = useAuth();
     const [jobs, setJobs] = useState([]);
+    const [appliedJobIds, setAppliedJobIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [applyLoadingJobId, setApplyLoadingJobId] = useState(null);
+    const db = getFirestore();
+
     useEffect(() => {
         fetchJobs();
+        fetchAppliedJobs();
     }, []);
 
     const fetchJobs = async () => {
         try {
-            const auth = getAuth(); // ✅ Modular auth
-            const db = getFirestore(); // ✅ Modular firestore
-
-            const user = auth.currentUser;
             const jobsRef = collection(db, 'jobs');
-            const jobsQuery = query(
-                jobsRef,
-                // where('employerId', '==', user.uid)
-                orderBy('postedAt', 'desc')
-            );
-
+            const jobsQuery = query(jobsRef, orderBy('postedAt', 'desc'));
             const snapshot = await getDocs(jobsQuery);
             const jobData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
             }));
-
             setJobs(jobData);
-            { console.log('jobs', jobs) }
         } catch (error) {
             console.error('Error fetching jobs:', error);
         } finally {
@@ -43,45 +56,142 @@ export default function MyPostedJobsScreen() {
         }
     };
 
+    const fetchAppliedJobs = async () => {
+        try {
+            const q = query(
+                collection(db, 'applications'),
+                where('labourId', '==', user.uid)
+            );
+            const snapshot = await getDocs(q);
+            const appliedIds = snapshot.docs.map(doc => ({
+                jobId: doc.data().jobId,
+                docId: doc.id,
+            }));
+            setAppliedJobIds(appliedIds);
+        } catch (error) {
+            console.error('Error fetching applied jobs:', error);
+        }
+    };
+
+    const applyToJob = async jobId => {
+        try {
+            setApplyLoadingJobId(jobId);
+            await addDoc(collection(db, 'applications'), {
+                jobId,
+                labourId: user.uid,
+                appliedAt: new Date(),
+            });
+
+            await updateDoc(doc(db, 'jobs', jobId), {
+                applicantsCount: increment(1),
+            });
+
+            setAppliedJobIds(prev => [...prev, { jobId }]);
+            console.log('Applied to job successfully');
+        } catch (error) {
+            console.error('Error applying to job:', error);
+        } finally {
+            setApplyLoadingJobId(null);
+        }
+    };
+
+    const cancelApplication = async jobId => {
+        try {
+            setApplyLoadingJobId(jobId);
+            // Find the correct application doc to delete
+            const q = query(
+                collection(db, 'applications'),
+                where('jobId', '==', jobId),
+                where('labourId', '==', user.uid)
+            );
+            const snapshot = await getDocs(q);
+            snapshot.forEach(async docSnap => {
+                await deleteDoc(doc(db, 'applications', docSnap.id));
+            });
+
+            await updateDoc(doc(db, 'jobs', jobId), {
+                applicantsCount: increment(-1),
+            });
+
+            setAppliedJobIds(prev => prev.filter(job => job.jobId !== jobId));
+            console.log('Application cancelled');
+        } catch (error) {
+            console.error('Error cancelling application:', error);
+        } finally {
+            setApplyLoadingJobId(null);
+        }
+    };
+
     const onRefresh = async () => {
         setRefreshing(true);
-        await fetchJobs(); // reuse your existing fetch logic
+        await fetchJobs();
+        await fetchAppliedJobs();
         setRefreshing(false);
     };
 
+    const isApplied = jobId => {
+        return appliedJobIds.some(job => job.jobId === jobId);
+    };
 
-    if (loading) {
-        return <Loading />;
-    }
+    // if (loading) return <Loading />;
 
     return (
         <>
-
-            <FlatList onRefresh={onRefresh} refreshing={refreshing}
+            <CommonHeader title={'New Jobs'} />
+            {loading ? <Loading /> : <FlatList
+                onRefresh={onRefresh}
+                refreshing={refreshing}
                 data={jobs}
-                ListHeaderComponent={<View style={{ padding: 0, margin: 0 }}><CommonHeader title={'NewJobsPosted'} /></View>}
-                ListEmptyComponent={<Text style={{ padding: 16 }}>No jobs posted.</Text>}
+
+                ListEmptyComponent={<AppText style={{ padding: 16 }}>No jobs posted.</AppText>}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.listContainer}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
-                        <Text style={styles.title}>Job Title:{item.title}</Text>
-                        <Text style={styles.label}>Posted By: {item.employerId}</Text>
-                        <Text>Job Description:{item.description}</Text>
-                        <Text style={styles.label}>Location: {item.location}</Text>
-                        <Text style={styles.label}>Salary: {item.salary}</Text>
-                        <Text style={styles.label}>Date: {item.postedAt.toDate().toLocaleString()}</Text>
-                        {/* <Text style={styles.status}>Status: {item.status}</Text> */}
-                        <TouchableOpacity style={styles.button}>
-                            <Text style={styles.buttonText}>Apply</Text>
-                        </TouchableOpacity>
-                        {/* <CommonButton title={'Apply'} /> */}
-                    </View>
-                )}
-            />
+                        <AppText style={styles.title} font='bold'>Job Title: {item.title}</AppText>
+                        <AppText style={styles.label}>Posted By: {item?.employerName}</AppText>
+                        {/* <AppText>Job Description: {item.description}</AppText> */}
+                        <AppText style={styles.label}>Location: {item.location}</AppText>
+                        <AppText style={styles.label}>Salary: {item.salary}</AppText>
+                        <AppText style={styles.label}>
+                            Date: {item.postedAt.toDate().toLocaleString()}
+                        </AppText>
+
+                        {isApplied(item.id) ? (
+                            <TouchableOpacity
+                                style={[styles.button, { backgroundColor: 'gray' }]}
+                                onPress={() => cancelApplication(item.id)}
+                                disabled={applyLoadingJobId === item.id}
+                            >
+                                <AppText style={styles.buttonText}>
+                                    {applyLoadingJobId === item.id ? (
+                                        <ActivityIndicator color="#fff" />
+                                    ) : (
+                                        'Cancel'
+                                    )}
+                                </AppText>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={() => applyToJob(item.id)}
+                                disabled={applyLoadingJobId === item.id}
+                            >
+                                <AppText style={styles.buttonText}>
+                                    {applyLoadingJobId === item.id ? (
+                                        <ActivityIndicator color="#fff" />
+                                    ) : (
+                                        'Apply'
+                                    )}
+                                </AppText>
+                            </TouchableOpacity>
+                        )}
+                    </View >
+                )
+                }
+            />}
+
         </>
-
-
     );
 }
 
@@ -93,32 +203,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#f4f4f4',
         borderRadius: 10,
         padding: 16,
-        marginBottom: 12,
+        margin: 12,
         elevation: 2,
     },
     title: {
         fontSize: 18,
-        fontWeight: 'bold',
+
     },
     label: {
         marginTop: 4,
         color: '#333',
     },
-    status: {
-        marginTop: 6,
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 30,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#777',
-    }, button: {
+    button: {
         backgroundColor: '#052E5F',
         padding: 10,
         marginHorizontal: 20,
