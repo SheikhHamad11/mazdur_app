@@ -68,7 +68,7 @@ export default function LoginScreen({ navigation }) {
                 <AppText style={{ color: 'white', textAlign: 'center' }}>Login</AppText>
             )}</Pressable>
 
-            <Pressable style={styles.button2} onPress={() => navigation.navigate('Register')} >
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('Welcome')} >
                 <AppText >Don't have an account? </AppText>
                 <AppText font='bold' >Sign Up Here</AppText>
             </Pressable>

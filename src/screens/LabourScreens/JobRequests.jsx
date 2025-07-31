@@ -6,7 +6,10 @@ import Loading from '../../components/Loading';
 import CommonHeader from '../../components/CommonHeader';
 import { firebase } from '@react-native-firebase/auth';
 import AppText from '../../components/AppText';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/1264436977';
 
+// native ads// ca-app-pub-5562543184619525/3294321056
 export default function JobRequestsScreen() {
     const { user } = useAuth();
     const [requests, setRequests] = useState([]);
@@ -111,8 +114,22 @@ export default function JobRequestsScreen() {
                             </Text>
                         </View >
                     }
+                    ListFooterComponent={
+                        <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                            <BannerAd
+                                unitId={adUnitId}
+                                size={BannerAdSize.BANNER}
+                                requestOptions={{
+                                    requestNonPersonalizedAdsOnly: true,
+                                }}
+                                onAdLoaded={() => console.log('Ad loaded')}
+                                onAdFailedToLoad={(err) => console.log('Banner Ad Error', JSON.stringify(err))}
+
+                            />
+                        </View>}
                 />
             }
+
         </>
     );
 }

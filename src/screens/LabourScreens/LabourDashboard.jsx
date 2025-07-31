@@ -16,6 +16,8 @@ import AppText from '../../components/AppText';
 import { useIsFocused } from '@react-navigation/native';
 import HorizontalVideoCarousel from '../../components/HorizontalVideoCaresoul';
 import MyButton from '../../components/MyButton';
+import MyNativeAd from '../../components/NativeAdView';
+import NativeAdCard from '../../components/NativeAdView';
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/8368830593';
 // const adUnitId = TestIds.BANNER; // FOR DEBUGGING
 export default function LabourDashboard({ navigation }) {
@@ -94,6 +96,7 @@ export default function LabourDashboard({ navigation }) {
                     <MyButton title={'Watch Mazdoor TV'} onPress={() => navigation.navigate('MazdurTV')} />
 
                     <SkillUploadScreen />
+                    {/* <NativeAdCard />s */}
 
                     <AppText style={{ fontSize: 18, marginBottom: 10 }} font='bold'>My Skill Videos</AppText>
                     {videos.length === 0 ? (

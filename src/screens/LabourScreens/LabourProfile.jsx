@@ -1,18 +1,21 @@
 // src/screens/LabourProfile.js
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { addDoc, collection, getFirestore, serverTimestamp } from '@react-native-firebase/firestore';
 import AppText from '../../components/AppText';
 import Loading from '../../components/Loading';
 import CommonHeader from '../../components/CommonHeader';
+import { useAuth } from '../../components/AuthContext';
+import MyButton from '../../components/MyButton';
 
 export default function LabourProfile({ route }) {
-    const { labourId } = route.params;
+    const { userData } = useAuth();
+    const { labourId } = route.params || {};
     const [labour, setLabour] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    const [status, setStatus] = useState('none');
     useEffect(() => {
         const fetchLabour = async () => {
             try {
@@ -29,6 +32,31 @@ export default function LabourProfile({ route }) {
 
         fetchLabour();
     }, [labourId]);
+
+    const handleHire = async (labourId, labourName, setStatus) => {
+        const db = getFirestore()
+        try {
+            await addDoc(collection(db, 'jobsRequests'), {
+                employerName: userData?.name,
+                labourId,
+                labourName,
+                status: 'pending',
+                date: serverTimestamp(),
+            });
+            setStatus('pending');
+        } catch (error) {
+            console.error('Error sending job request:', error);
+        }
+    };
+
+
+    const makeCall = () => {
+        if (labour?.number) {
+            Linking.openURL(`tel:${labour.number}`);
+        } else {
+            Alert.alert('Phone number not available');
+        }
+    };
 
     // if (loading) { return <Loading /> }
 
@@ -49,8 +77,7 @@ export default function LabourProfile({ route }) {
                 <AppText style={styles.name}>{labour.name}</AppText>
                 <AppText style={styles.bioTitle} font='medium'>Email</AppText>
                 <AppText style={styles.bioText}>{labour.email}</AppText>
-                <AppText style={styles.bioTitle} font='medium'>Phone</AppText>
-                <AppText style={styles.bioText}> {labour.number || 'Not Provided'}</AppText>
+
                 <AppText style={styles.bioTitle} font='medium'>Joined On</AppText>
                 <AppText style={styles.bioText}>{labour.createdAt?.toDate().toLocaleDateString() || 'N/A'}</AppText>
                 <AppText style={styles.bioTitle} font='medium'>Skills</AppText>
@@ -61,6 +88,27 @@ export default function LabourProfile({ route }) {
                 <AppText style={styles.bioText}>{labour.echoLikes || 'Not Provided.'}</AppText>
                 <AppText style={styles.bioTitle} font='medium'>Availability</AppText>
                 <AppText style={styles.bioText}>{labour.available ? 'Available' : 'Not Available'}</AppText>
+                <AppText style={styles.bioTitle} font='medium'>Phone</AppText>
+                <AppText style={styles.bioText}> {labour.number || 'Not Provided'}</AppText>
+                <MyButton style={{
+                    backgroundColor: 'transparent',
+                    borderColor: 'black', borderWidth: 1, marginVertical: 10, padding: 10,
+                }} title={'📞 Call Labour  '} titleColor='black' onPress={makeCall} />
+
+                {userData?.role === 'employer' && (
+                    <MyButton disabled={status === 'pending'} width='100%' style={
+                        {
+                            backgroundColor:
+                                status === 'none'
+                                    ? '#052E5F'
+                                    : status === 'accepted'
+                                        ? 'green'
+                                        : status === 'pending'
+                                            ? 'gray'
+                                            : 'red', marginVertical: 10,
+                        }}
+                        title={status === 'none' ? 'Send Hire Request' : status.charAt(0).toUpperCase() + status.slice(1)} onPress={() => handleHire(labourId, labour.name, setStatus)} />
+                )}
             </ScrollView >
             }
 

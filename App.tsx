@@ -1,30 +1,12 @@
 // import './global.css';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Routes from './src/navigation/index';
 import AuthProvider from './src/components/AuthContext';
 import MobileAds from 'react-native-google-mobile-ads';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { LogBox, Alert, StatusBar, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-LogBox.ignoreLogs(['new NativeEventEmitter']); // Optional
-
-// Global Error Handler
-if (!__DEV__) {
-  const defaultHandler = ErrorUtils.getGlobalHandler();
-
-  ErrorUtils.setGlobalHandler((error, isFatal) => {
-    console.log('Global JS Error:', error.message);
-
-    if (isFatal) {
-      Alert.alert('Unexpected error occurred', `
-        Error: ${isFatal ? 'Fatal:' : ''} ${error.name} ${error.message}
-      `);
-    }
-
-    defaultHandler(error, isFatal);
-  });
-}
 
 export default function App() {
 
@@ -36,21 +18,18 @@ useEffect(() => {
     });
 }, []);
 
-
-
-
   return (
     <>
-
-           <SafeAreaView style={{ flex: 1  }}>
-        
+      <SafeAreaView style={{ flex: 1  }}>
+        <GestureHandlerRootView>
              <AuthProvider>
                <NavigationContainer>
                  <Routes />
                </NavigationContainer>
              </AuthProvider>
-            </SafeAreaView>
-              </>
+             </GestureHandlerRootView>
+      </SafeAreaView>
+    </>
   );
 }
 // app id 

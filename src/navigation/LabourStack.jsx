@@ -8,12 +8,13 @@ import SkillUploadScreen from '../screens/LabourScreens/SkillUpload';
 import Icon from 'react-native-vector-icons/Ionicons';
 import JobRequestsScreen from '../screens/LabourScreens/JobRequests';
 import EditProfile from '../screens/LabourScreens/EditProfile';
-import MazdoorTV from '../screens/LabourScreens/MazdurTV';
+import MazdurTV from '../screens/LabourScreens/MazdurTV';
 import ExploreNewJobs from '../screens/LabourScreens/ExploreNewJobs';
 import BoostProfileScreen from '../screens/LabourScreens/BoostProfile';
 import NotificationsScreen from '../screens/LabourScreens/Notifications';
 import { StatusBar } from 'react-native';
 import LabourProfileScreen from '../screens/LabourScreens/LabourProfile';
+import About from '../screens/LabourScreens/About';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export default function LabourStack() {
@@ -23,7 +24,8 @@ export default function LabourStack() {
         screenOptions={{ headerShown: false, initialRouteName: 'Splash' }}>
         <Stack.Screen name="LabourTabs" component={LabourTabs} />
         <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="MazdurTV" component={MazdoorTV} />
+        <Stack.Screen name="MazdurTV" component={MazdurTV} />
+        <Stack.Screen name="About" component={About} />
         <Stack.Screen name="LabourProfile" component={LabourProfileScreen} />
         <Stack.Screen name="SkillUpload" component={SkillUploadScreen} />
         <Stack.Screen name="ExploreNewJobs" component={ExploreNewJobs} />

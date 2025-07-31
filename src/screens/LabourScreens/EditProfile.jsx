@@ -6,7 +6,8 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { useAuth } from '../../components/AuthContext'; // make sure you have this hook set up
 import CommonHeader from '../../components/CommonHeader';
 import AppText from '../../components/AppText';
-
+import { Image as ImageCompressor } from 'react-native-compressor';
+import MyButton from '../../components/MyButton';
 export default function EditProfile() {
     const { user, userData } = useAuth();
     const [skills, setSkills] = useState('');
@@ -45,34 +46,43 @@ export default function EditProfile() {
         }
     };
 
+
+
     const handleSave = async () => {
-        setUploading(true);
-        let photoURL = imageUri;
+        try {
+            setUploading(true);
+            let photoURL = imageUri;
 
-        // Upload image if it's a new one (not already hosted)
-        if (imageUri && !imageUri.includes('https://')) {
-            const ref = storage().ref(`profilePics/${user.uid}`);
-            await ref.putFile(imageUri);
-            photoURL = await ref.getDownloadURL();
+            // Check if image is a local URI (i.e., not uploaded yet)
+            if (imageUri && !imageUri.includes('https://')) {
+                // ✅ Compress the image
+                const compressedImage = await ImageCompressor.compress(imageUri, {
+                    compressionMethod: 'auto',
+                    quality: 0.7, // Adjust as needed
+                });
+
+                const ref = storage().ref(`profilePics/${user.uid}`);
+                await ref.putFile(compressedImage);
+                photoURL = await ref.getDownloadURL();
+            }
+
+            // ✅ Update user document in Firestore
+            await firestore().collection('users').doc(user.uid).update({
+                name,
+                skills,
+                photoURL,
+                number
+            });
+
+            Alert.alert('Success', 'Profile updated successfully');
+        } catch (error) {
+            console.error('Error updating profile:', error.message);
+            Alert.alert('Error', error.message);
+        } finally {
+            setUploading(false);
         }
-
-        await firestore().collection('users').doc(user.uid).update({
-            name,
-            skills,
-            photoURL,
-            number
-        });
-
-        // Optional: Refetch the updated data
-        // const updatedSnap = await getDoc(userRef);
-        // if (updatedSnap.exists()) {
-        //     const updatedData = updatedSnap.data();
-        //     setUserData(updatedData); // ✅ Update in context
-        // }
-
-        Alert.alert('Success', 'Profile updated successfully');
-        setUploading(false);
     };
+
 
     return (
         <>
@@ -127,9 +137,10 @@ export default function EditProfile() {
                         />
                     </>
                 }
-                <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={uploading}>
+                <MyButton title={uploading ? <ActivityIndicator size={20} color={'white'} /> : 'Save Changes'} onPress={handleSave} disabled={uploading} />
+                {/* <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={uploading}>
                     <AppText style={styles.saveButtonText}>{uploading ? <ActivityIndicator size={20} color={'white'} /> : 'Save Changes'}</AppText>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </ScrollView>
         </>
     );

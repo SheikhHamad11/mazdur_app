@@ -7,6 +7,8 @@ import auth, { getAuth } from '@react-native-firebase/auth';
 import Loading from '../../components/Loading';
 import AppText from '../../components/AppText';
 import MyButton from '../../components/MyButton';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/2421605970';
 export default function MyPostedJobsScreen({ navigation }) {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
@@ -170,8 +172,9 @@ export default function MyPostedJobsScreen({ navigation }) {
       {loading ? <Loading /> :
         <FlatList onRefresh={onRefresh} refreshing={refreshing} nestedScrollEnabled={true}
           data={jobs}
-          // ListHeaderComponent={<CommonHeader title={'JobsPosted'} />}
-          ListEmptyComponent={<AppText style={{ padding: 16 }}>No jobs posted.</AppText>}
+
+          ListEmptyComponent={<AppText style={{ padding: 16, alignSelf: 'center' }}>No jobs posted.</AppText>}
+
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
@@ -211,6 +214,7 @@ export default function MyPostedJobsScreen({ navigation }) {
                   }
                 </ScrollView >
               )
+
               }
 
 
@@ -228,7 +232,17 @@ export default function MyPostedJobsScreen({ navigation }) {
           }
         />
       }
-
+      <View style={{ alignItems: 'center', marginVertical: 10 }}>
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.BANNER}
+          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+          onAdLoaded={() => console.log('Ad loaded')}
+          onAdFailedToLoad={err =>
+            console.log('Banner Ad Error', JSON.stringify(err))
+          }
+        />
+      </View>
     </>
 
 
@@ -238,12 +252,15 @@ export default function MyPostedJobsScreen({ navigation }) {
 const styles = StyleSheet.create({
   listContainer: {
     padding: 0,
+    flexGrow: 1,
+
   },
   card: {
     backgroundColor: '#f4f4f4',
     borderRadius: 10,
     padding: 16,
-    marginBottom: 12,
+    margin: 12,
+
     elevation: 2,
   },
   title: {

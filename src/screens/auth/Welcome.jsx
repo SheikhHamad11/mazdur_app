@@ -13,7 +13,7 @@ export default function WelcomeScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <Image source={require('../../assets/mazdur.png')} style={{ width: 300, height: 300 }} />
+            <Image source={require('../../assets/mazdur.png')} style={{ width: 250, height: 250 }} />
             <AppText style={styles.title} font='bold'>Welcome to Mazdur App</AppText>
             <AppText style={styles.subtitle}>Select your role:</AppText>
 
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
     },
     title: {
-        fontSize: 26,
+        fontSize: 22,
         marginBottom: 16,
     },
     subtitle: {

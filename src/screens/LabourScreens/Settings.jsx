@@ -27,18 +27,14 @@ export default function LaborerSettings() {
             <View style={styles.container}>
                 {/* {isBoosted && <AppText🔥 Boost Active until: {formatDate(expiryDate)}</Text>} */}
                 <MyButton onPress={() => navigation.navigate('EditProfile')} title={'Edit Profile'} />
-
                 {userData?.role == 'labour' && <>
                     {/* <MyButton onPress={() => navigation.navigate('ExploreNewJobs')} title={'Explore New Jobs'} /> */}
                     <MyButton onPress={() => navigation.navigate('BoostProfile')} title={'Boost Profile 🚀'} />
 
                 </>
                 }
-
-                {/* <TouchableOpacity style={styles.button} onPress={handleChangeLanguage}>
-                    <AppText style={styles.buttonText}>Change Language</AppText>
-                </TouchableOpacity> */}
                 <MyButton onPress={() => navigation.navigate('Notifications')} title={'Notifications'} />
+                <MyButton onPress={() => navigation.navigate('About')} title={'About'} />
                 <MyButton onPress={handleRateApp} title={'Rate & Review App'} />
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#e74c3c' }]} onPress={logout}>

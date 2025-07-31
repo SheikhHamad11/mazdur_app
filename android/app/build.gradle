@@ -84,7 +84,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         missingDimensionStrategy 'react-native-video', 'exoplayer'
-        versionCode 3
+        versionCode 5
         versionName "1.1"
     }
     signingConfigs {

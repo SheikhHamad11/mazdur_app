@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, Image, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import auth from '@react-native-firebase/auth'
 import firestore, { serverTimestamp } from '@react-native-firebase/firestore';
+import { getStorage } from '@react-native-firebase/storage';
 import { useAuth } from '../../components/AuthContext';
 import AppText from '../../components/AppText';
 import MyInput from '../../components/MyInput';
-
+import { launchImageLibrary } from 'react-native-image-picker';
+import MyButton from '../../components/MyButton';
+import { Image as ImageCompressor } from 'react-native-compressor';
 export default function RegisterScreen({ navigation, route }) {
     const { role } = route.params || {};
     console.log('role', role)
@@ -20,7 +23,23 @@ export default function RegisterScreen({ navigation, route }) {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
     const [address, setAddress] = useState('')
+    const [photoURL, setPhotoURL] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0); // 0–100
 
+
+
+
+    const pickImage = () => {
+        launchImageLibrary({ mediaType: 'photo' }, response => {
+            if (response.didCancel) return;
+            if (response.errorMessage) {
+                Alert.alert('Error', response.errorMessage);
+                return;
+            }
+            const asset = response.assets[0];
+            setPhotoURL(asset); // state variable
+        });
+    };
 
     // const sendOtp = async () => {
     //     if (!/^[0-9]{5}-[0-9]{7}-[0-9]{1}$/.test(cnic)) {
@@ -43,13 +62,23 @@ export default function RegisterScreen({ navigation, route }) {
 
 
     const handleSignUp = async () => {
-        // Email regex for basic validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!name || !email || !password || !number || !skills || !address) {
-            Alert.alert('Error', 'Please fill in all fields.');
+        if (role === 'employer') {
+            if (!name || !email || !password || !number) {
+                Alert.alert('Error', 'Please fill in all required fields for Employer.');
+                return;
+            }
+        } else if (role === 'labour') {
+            if (!name || !email || !password || !number || !skills || !address) {
+                Alert.alert('Error', 'Please fill in all required fields for Labour.');
+                return;
+            }
+        } else {
+            Alert.alert('Error', 'Invalid role selected.');
             return;
         }
+
         if (!emailRegex.test(email)) {
             Alert.alert('Invalid Email', 'Please enter a valid email address.');
             return;
@@ -59,46 +88,100 @@ export default function RegisterScreen({ navigation, route }) {
             Alert.alert('Weak Password', 'Password must be at least 6 characters long.');
             return;
         }
+
+        if (!photoURL || !photoURL.uri) {
+            Alert.alert('Error', 'Please upload a profile picture.');
+            return;
+        }
+
+        let imageUrl = null;
+        setLoading(true);
+        setUploadProgress(0);
+
         try {
-            setLoading(true)
+            // Step 1: Compress the image
+            const compressedUri = await ImageCompressor.compress(photoURL.uri, {
+                compressionMethod: 'auto',
+                quality: 0.7,
+            });
+
+            const filename = `${email}_${Date.now()}.jpg`;
+            const ref = getStorage().ref(`profilePics/${filename}`);
+
+            // Step 2: Start uploading
+            const uploadTask = ref.putFile(compressedUri);
+
+            uploadTask.on('state_changed', taskSnapshot => {
+                const percent = Math.round((taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100);
+                setUploadProgress(percent);
+            });
+
+            await uploadTask;
+
+            // Step 3: Get image URL
+            imageUrl = await ref.getDownloadURL();
+
+            // Step 4: Create user
             const userCredential = await auth().createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
 
-            // Save role to Firestore
-            await firestore().collection('users').doc(user.uid).set({
+            const userData = {
                 email,
                 name,
                 role,
-                skills,
                 number,
-                address,
+                photoURL: imageUrl,
                 createdAt: serverTimestamp(),
-            });
-            setLoading(false)
-            console.log('User registered and role saved!');
-            // navigation.navigate('Login'); // or 'Home'
+            };
+
+            if (role === 'labour') {
+                userData.skills = skills;
+                userData.address = address;
+            }
+
+            await firestore().collection('users').doc(user.uid).set(userData);
+
+            setLoading(false);
+            setUploadProgress(0);
+            Alert.alert('Success', 'User registered successfully!');
         } catch (error) {
-            Alert.alert('Error', error.message)
-            setLoading(false)
             console.error('Signup error:', error.message);
+            Alert.alert('Error', error.message);
+            setLoading(false);
+            setUploadProgress(0);
         }
     };
+
+
+
     return (
         <ScrollView contentContainerStyle={styles.container} nestedScrollEnabled={true} showsVerticalScrollIndicator={false} scrollEnabled={true} keyboardShouldPersistTaps={'always'}>
             <Image source={require('../../assets/mazdur.png')} style={styles.image} />
             <AppText style={styles.title} font='bold'>Signup Page</AppText>
             {/* <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} scrollEnabled={true} keyboardShouldPersistTaps={'always'}> */}
-            {role === undefined &&
+            {/* {role === undefined &&
                 <MyInput header='Role' placeholder='Enter Your Role' placeholderTextColor={'gray'} value={role} />
-            }
+            } */}
 
 
             <MyInput header='Name' placeholder='Enter Your Name' placeholderTextColor={'gray'} value={name} onChangeText={setName} />
             <MyInput header='Email' placeholder='Enter Your Email' placeholderTextColor={'gray'} value={email} onChangeText={setEmail} />
             <MyInput header='Password' placeholder='Enter Your Password' placeholderTextColor={'gray'} isPassword value={password} onChangeText={setPassword} isEye={true} />
-            <MyInput header='Skills' placeholder='Enter Your Skills' placeholderTextColor={'gray'} value={skills} onChangeText={setSkills} />
-            <MyInput header='Address' placeholder='Enter Your Address' placeholderTextColor={'gray'} value={address} onChangeText={setAddress} />
-            <MyInput header='Number' placeholder='Enter Your Mobile Number' placeholderTextColor={'gray'} value={number} onChangeText={setNumber} keyboardType='phone-pad' />
+            <MyInput header='Phone' placeholder='Enter Your Mobile Number' placeholderTextColor={'gray'} value={number} onChangeText={setNumber} keyboardType='phone-pad' />
+            {role === 'labour' && <>
+                <MyInput header='Skills' placeholder='Enter Your Skills' placeholderTextColor={'gray'} value={skills} onChangeText={setSkills} />
+                <MyInput header='Address' placeholder='Enter Your Address' placeholderTextColor={'gray'} value={address} onChangeText={setAddress} />
+
+            </>
+            }
+
+
+            <MyButton title={'Upload Profile Picture +'} titleColor='black' onPress={pickImage} style={{ marginTop: 20, backgroundColor: 'transparent', borderRadius: 10, borderColor: 'gray', borderWidth: 1 }} />
+
+
+            {photoURL && <Image source={{ uri: photoURL.uri }} style={{ width: 100, height: 100 }} />}
+
+
 
             {/* <MyInput header='CNIC' placeholder='Enter Your CNIC (e.g., 12345-6789012-3)' placeholderTextColor={'gray'} value={cnic} onChangeText={setCnic} /> */}
             {/* <MyInput header='Phone' placeholder='Enter Your Phone (without +92)' placeholderTextColor={'gray'} value={phone} onChangeText={setPhone} keyboardType="phone-pad" /> */}
@@ -108,6 +191,13 @@ export default function RegisterScreen({ navigation, route }) {
             ) : (
                 <AppText style={{ color: 'white', textAlign: 'center' }}>SignUp</AppText>
             )}</Pressable>
+            {loading && (
+                <View style={styles.progressBarContainer}>
+                    <View style={[styles.progressBar, { width: `${uploadProgress}%` }]} />
+                    <Text style={{ textAlign: 'center', color: 'black', position: 'absolute', width: '100%', alignItems: 'center' }}>{uploadProgress}%</Text>
+                </View>
+            )}
+
             <Pressable style={styles.button2} onPress={() => navigation.navigate('Login')} >
                 <AppText >Already have account? </AppText>
                 <AppText font='bold' >Login Here</AppText>
@@ -146,6 +236,18 @@ export const styles = StyleSheet.create({
         // marginBottom: 20,
     },
 
+    progressBarContainer: {
+        height: 20,
+        width: '100%',
+        backgroundColor: '#eee',
+        borderRadius: 5,
+        marginTop: 10,
+    },
+    progressBar: {
+        height: '100%',
+        backgroundColor: '#4caf50',
+        borderRadius: 5,
+    },
     buttonContainer: {
         width: '100%',
         marginTop: 16,

@@ -98,7 +98,7 @@ const MyInput: React.FC<Props> = ({
           style={{
             flex: 1,
             maxHeight:(multiLine ? 300 : 48),
-            fontSize: 17,
+            fontSize: 16,
             color: 'black',
           }}
           secureTextEntry={isPassword && eye}

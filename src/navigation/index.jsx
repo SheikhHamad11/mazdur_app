@@ -4,34 +4,62 @@ import { useAuth } from '../components/AuthContext';
 import Loading from '../components/Loading';
 import SplashScreen from '../screens/Splash';
 import EmployerStack from './EmployerStack';
-import EmployerDashboard from '../screens/Employer/EmployerDashboard';
 import AuthStack from './AuthStack';
 import { StatusBar } from 'react-native';
+import { AppOpenAd, AdEventType, TestIds, MobileAds } from 'react-native-google-mobile-ads';
+
+const appOpenAd = AppOpenAd.createForAdRequest(
+  __DEV__ ? TestIds.APP_OPEN : 'ca-app-pub-5562543184619525/8919016973',
+  {
+    requestNonPersonalizedAdsOnly: true,
+  }
+);
 
 export default function Routes() {
   const { user, userData, loading } = useAuth();
-  // { console.log('user.role', userData?.role) }
-  const [showSplash, setShowSplash] = useState(true);
 
+  const [initializing, setInitializing] = useState(true);
+  const [splashDone, setSplashDone] = useState(false);
+  const [adDone, setAdDone] = useState(false);
+
+  // Show splash for fixed time
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false); // hide splash after 1.5 seconds
-    }, 2000);
-    return () => clearTimeout(timer);
+    const splashTimer = setTimeout(() => {
+      setSplashDone(true);
+    }, 2000); // 2 seconds
+    return () => clearTimeout(splashTimer);
   }, []);
 
-  if (showSplash) {
-    // Show your splash component or animation
-    return (
-      <SplashScreen />
-    );
-  }
+  useEffect(() => {
+    const initAd = async () => {
+      await MobileAds().initialize();
 
-  if (loading) {
-    // Show a loading indicator while determining user status
-    return (
-      <Loading />
-    );
+      appOpenAd.load();
+
+      appOpenAd.addAdEventListener(AdEventType.LOADED, () => {
+        appOpenAd.show();
+      });
+
+      appOpenAd.addAdEventListener(AdEventType.CLOSED, () => {
+        setAdDone(true);
+      });
+
+      appOpenAd.addAdEventListener(AdEventType.ERROR, () => {
+        setAdDone(true);
+      });
+    };
+
+    initAd();
+
+    return () => {
+      appOpenAd.removeAllListeners();
+    };
+  }, []);
+
+  const readyToShowApp = splashDone && adDone;
+
+  if (!readyToShowApp || loading) {
+    return <SplashScreen />;
   }
 
   return (
@@ -46,6 +74,4 @@ export default function Routes() {
       ) : null}
     </>
   );
-
-
 }

@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffa500',
         overflow: 'hidden',
         elevation: 4,
-        transform: [{ rotate: '2deg' }],
+
     },
     video: {
         width: '100%',

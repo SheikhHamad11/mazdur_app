@@ -11,12 +11,13 @@ import {
     TestIds,
 } from 'react-native-google-mobile-ads';
 import AppText from '../../components/AppText';
+import Loading from '../../components/Loading';
 const BoostProfileScreen = () => {
     const [isAdLoading, setIsAdLoading] = useState(false); // To indicate loading process
     const [isAdLoaded, setIsAdLoaded] = useState(false);
     const [isAdShowing, setIsAdShowing] = useState(false); // To prevent multiple show attempts
     const { user } = useAuth();
-    const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-5562543184619525/2226385652'; // Ensure it's a rewarded ID
+    const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-5562543184619525/6418574238'; // Ensure it's a rewarded ID
 
     // Use useRef to keep the same ad instance across re-renders
     const rewardedAdRef = useRef(null);
@@ -195,17 +196,20 @@ const BoostProfileScreen = () => {
     return (
         <>
             <CommonHeader title={'Boost Profile'} />
-            <View style={styles.container}>
+            {isAdLoading ? <Loading /> : <View style={styles.container}>
                 {/* <AppText style={styles.header}>Boost Your Profile</AppText> */}
                 <AppText style={styles.subText}>
                     Boosting increases your visibility to employers and places your profile at the top.
                 </AppText>
+                <AppText style={styles.subText} font='medium'>
+                    {isAdLoaded ? 'Reward Ad Laoded' : 'Loading Ad...'}
+                </AppText>
 
-                {/* <Image
+                <Image
                     source={require('../../assets/boost.png')} // Replace with your illustration
                     style={styles.illustration}
                     resizeMode="contain"
-                /> */}
+                />
 
                 <TouchableOpacity style={styles.boostButton} onPress={showAd}>
                     <Icon name="rocket" size={24} color="#fff" style={{ marginRight: 8 }} />
@@ -213,7 +217,8 @@ const BoostProfileScreen = () => {
                 </TouchableOpacity>
 
                 <AppText style={styles.note}>Your profile will be boosted for the next 24 hours.</AppText>
-            </View>
+            </View>}
+
         </>
     );
 };

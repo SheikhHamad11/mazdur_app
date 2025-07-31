@@ -13,7 +13,7 @@ export default function EmployerDashboard() {
     const { logout, userData } = useAuth();
 
     // Use real Ad Unit ID in production
-    const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-xxxxxxxxxxxxx/xxxxxxxxxx';
+    const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/8368830593';
 
     return (
         <>
@@ -36,20 +36,20 @@ export default function EmployerDashboard() {
 
 
             <ScrollView contentContainerStyle={styles.container}>
-                {/* Banner Ad */}
-                <View style={{ alignItems: 'center', marginVertical: 20 }}>
-                    <BannerAd
-                        unitId={adUnitId}
-                        size={BannerAdSize.BANNER}
-                        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-                    />
-                </View>
+
                 <MyButton width='100%' title={'Post a Job'} onPress={() => navigation.navigate('PostJob')} />
                 <MyButton width='100%' title={'My Posted Jobs'} onPress={() => navigation.navigate('Jobs Posted')} />
                 <MyButton width='100%' title={'Watch Mazdoor TV'} onPress={() => navigation.navigate('MazdurTV')} />
                 <MyButton width='100%' title={'Settings'} onPress={() => navigation.navigate('Settings')} />
-
             </ScrollView>
+            {/* Banner Ad */}
+            <View style={{ alignItems: 'center', marginVertical: 20 }}>
+                <BannerAd
+                    unitId={adUnitId}
+                    size={BannerAdSize.BANNER}
+                    requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                />
+            </View>
         </>
 
     );

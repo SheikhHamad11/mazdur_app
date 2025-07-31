@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image, Pressable } from 'react-native';
 import firestore, { addDoc, onSnapshot, serverTimestamp } from '@react-native-firebase/firestore';
 import CommonHeader from '../../components/CommonHeader';
 import { useAuth } from '../../components/AuthContext';
 import { getFirestore, collection, query, where, getDocs } from '@react-native-firebase/firestore';
 import Loading from '../../components/Loading';
 import AppText from '../../components/AppText';
+
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-5562543184619525/2421605970';
 export default function LaborSearchScreen({ navigation }) {
     const { user, userData } = useAuth()
     const [queiry, setQueiry] = useState('');
@@ -93,13 +96,15 @@ export default function LaborSearchScreen({ navigation }) {
 
         <View style={styles.card}>
             <View style={{ flexDirection: 'row', gap: 5 }}>
-                <View style={{ width: '30%' }}>
+                <Pressable onPress={() => navigation.navigate('LabourProfile', { labourId: item.id })} style={{ width: '30%', gap: 10 }}>
                     {item?.photoURL ? (
                         <Image source={{ uri: item?.photoURL }} style={styles.image} />
                     ) : (
                         <Image source={require('../../assets/placeholder.png')} style={styles.image} />
                     )}
-                </View>
+                    <AppText style={{ textAlign: 'center', color: 'black', fontSize: 14 }} font='medium'>View Profile</AppText>
+                    {/* <MyButton title={'View Profile'} titleStyle={{ fontSize: 10, color: 'blue', }} width={100} style={{ backgroundColor: 'transparent' }} /> */}
+                </Pressable>
                 <View style={{ width: '70%' }}>
                     <AppText style={styles.name} font='bold'>Name:{item.name}</AppText>
                     <AppText>Email: {item?.email}</AppText>
@@ -141,6 +146,17 @@ export default function LaborSearchScreen({ navigation }) {
                     <AppText style={styles.noResult}>No matching laborers found.</AppText>
                 ) : (
                     <FlatList
+                        ListFooterComponent={<View style={{ alignItems: 'center', marginVertical: 10 }}>
+                            <BannerAd
+                                unitId={adUnitId}
+                                size={BannerAdSize.BANNER}
+                                requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                                onAdLoaded={() => console.log('Ad loaded')}
+                                onAdFailedToLoad={err =>
+                                    console.log('Banner Ad Error', JSON.stringify(err))
+                                }
+                            />
+                        </View>}
                         data={filtered}
                         keyExtractor={(item) => item.id}
                         renderItem={renderLaborer}
@@ -156,7 +172,7 @@ export default function LaborSearchScreen({ navigation }) {
 
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16 },
+    container: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
     searchInput: {
         padding: 12,
         borderWidth: 1,

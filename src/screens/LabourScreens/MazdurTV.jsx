@@ -38,10 +38,10 @@ const MazdoorTV = () => {
         if (viewableItems.length > 0) {
             const index = viewableItems[0].index;
             setCurrentIndex(index);
-            // if ((index === 4 || index === 10) && !shownAds.includes(index)) {
-            //     setShownAds([...shownAds, index]);
-            //     showAd();
-            // }
+            if ((index === 4 || index === 10) && !shownAds.includes(index)) {
+                setShownAds([...shownAds, index]);
+                showAd();
+            }
         }
     }).current;
 
@@ -401,9 +401,6 @@ const VideoCard = ({ item, isActive, handleHire, employerId, userData, }) => {
 
 
 
-
-
-
     const navigation = useNavigation()
     const totalcomments = comments.length + Object.values(replies).reduce((acc, replies) => acc + replies.length, 0);
     return (
@@ -418,7 +415,14 @@ const VideoCard = ({ item, isActive, handleHire, employerId, userData, }) => {
                     repeat
                     resizeMode="cover"
                     controls={false}
-                    onError={(err) => Alert.alert('Playback error', 'Video playback failed. Please try again later.')}
+                    onError={(error) => {
+                        const err = error?.nativeEvent?.error;
+                        if (err) {
+                            Alert.alert('Playback error', 'Video failed to play.');
+                            console.error('Video error:', err);
+                        }
+                    }}
+
                 />
                 {paused &&
                     <Icon
@@ -470,7 +474,7 @@ const VideoCard = ({ item, isActive, handleHire, employerId, userData, }) => {
             <View style={styles.infoContainer}>
                 <AppText style={styles.name}>Name: {item?.labourInfo.name}</AppText>
                 <AppText style={styles.skill}>Skills: {item?.labourInfo.skills}</AppText>
-                {userData?.role === 'employer' && (
+                {/* {userData?.role === 'employer' && (
                     <MyButton style={
                         {
                             backgroundColor:
@@ -483,7 +487,7 @@ const VideoCard = ({ item, isActive, handleHire, employerId, userData, }) => {
                                             : 'red', marginVertical: 10
                         }}
                         title={status === 'none' ? 'Hire' : status.charAt(0).toUpperCase() + status.slice(1)} onPress={() => handleHire(item.labourId, item.labourInfo.name, setStatus)} />
-                )}
+                )} */}
 
 
 
@@ -639,8 +643,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderTopColor: 'white',
         borderTopWidth: 2,
-        borderBottomColor: '#ccc',
-        borderBottomWidth: 1,
+        // borderBottomColor: '#ccc',
+        // borderBottomWidth: 1,
     },
     name: { fontSize: 16, color: 'white' },
     skill: { fontSize: 14, color: 'white' },

@@ -2,10 +2,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import AppText from './AppText';
 
-export default function MyButton({ onPress, title, style, width = 'auto' }) {
+export default function MyButton({ onPress, title, style, width = 'auto', disabled, titleColor = 'white', titleStyle }) {
     return (
-        <TouchableOpacity style={[styles.button, style, { width: width }]} onPress={onPress}>
-            <AppText style={{ color: 'white' }} font='medium'>{title}</AppText>
+        <TouchableOpacity disabled={disabled} style={[styles.button, style, { width: width }]} onPress={onPress}>
+            <AppText style={[{ color: titleColor }, titleStyle]} font='medium'>{title}</AppText>
         </TouchableOpacity>
     )
 }

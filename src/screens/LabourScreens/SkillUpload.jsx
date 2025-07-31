@@ -15,6 +15,7 @@ import firestore, { serverTimestamp } from '@react-native-firebase/firestore'
 import CommonButton from '../../components/CommonButton';
 import Video from 'react-native-video';
 import AppText from '../../components/AppText';
+import { Video as CompressorVideo } from 'react-native-compressor'; // alias to avoid naming conflict
 
 export default function SkillUploadScreen() {
     const [videoUri, setVideoUri] = useState(null);
@@ -22,13 +23,10 @@ export default function SkillUploadScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const { user } = useAuth();
     const [uploadProgress, setUploadProgress] = useState(null);
+    const [currentUploadId, setCurrentUploadId] = useState(null);
 
     const pickVideo = async () => {
-        const result = await launchImageLibrary({
-            mediaType: 'video',
-            videoQuality: 'low',
-            durationLimit: 30,
-        });
+        const result = await launchImageLibrary({ mediaType: 'video' });
 
         if (result.didCancel || result.errorCode) {
             Alert.alert('Error', result.errorMessage || 'Video selection failed');
@@ -37,13 +35,8 @@ export default function SkillUploadScreen() {
 
         const video = result.assets[0];
 
-        // if (video.duration && video.duration > 30) {
-        //     Alert.alert('Error', 'Please select a video less than or equal to 30 seconds.');
-        //     return;
-        // }
-
-        setVideoUri(video.uri);
-        setModalVisible(true);
+        setVideoUri(video.uri); // Original video for instant preview
+        setModalVisible(true);  // Open modal immediately
     };
 
 
@@ -52,30 +45,55 @@ export default function SkillUploadScreen() {
 
     const uploadVideo = async () => {
         if (!videoUri || !user) return;
+        if (uploading) {
+            Alert.alert("Please wait", "An upload is already in progress.");
+            return;
+        }
 
         setUploading(true);
-        const fileName = `skills/${user.uid}_${Date.now()}.mp4`;
-        const storageRef = storage().ref(fileName);
-
-        const task = storageRef.putFile(videoUri);
-
-        task.on('state_changed', taskSnapshot => {
-            const percent = (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
-            console.log(`Upload is ${percent.toFixed(0)}% done`);
-            setUploadProgress(percent.toFixed(0)); // Track in state
-        });
+        setUploadProgress('Compressing...');
 
         try {
+            // ✅ Compress the video before upload
+            const compressedUri = await CompressorVideo.compress(videoUri, {
+                compressionMethod: 'auto',
+                minimumFileSizeForCompress: 1, // Only compress if > 1MB
+            });
+            console.log('compressed', compressedUri)
+            setUploadProgress('Uploading...');
+
+            const fileName = `skills/${user.uid}_${Date.now()}.mp4`;
+            const storageRef = storage().ref(fileName);
+            const uploadId = Date.now(); // unique ID for this upload
+            setCurrentUploadId(uploadId);
+
+            const task = storageRef.putFile(compressedUri);
+            // task.on('state_changed', taskSnapshot => {
+            //     const percent = (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
+            //     setUploadProgress(`${percent.toFixed(0)}%`);
+            // });
+            task.on('state_changed', taskSnapshot => {
+                // Only track progress for the latest upload
+                setUploadProgress((prevId) => {
+                    if (currentUploadId === uploadId) {
+                        const percent = (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
+                        return `${percent.toFixed(0)}%`;
+                    } else {
+                        return prevId; // Ignore stale updates
+                    }
+                });
+            });
+
+
             await task;
 
             const downloadURL = await storageRef.getDownloadURL();
 
-            await firestore()
-                .collection('users')
-                .doc(user.uid)
-                .update({
-                    skillVideos: firestore.FieldValue.arrayUnion(downloadURL),
-                });
+            // ✅ Save in Firestore
+            await firestore().collection('users').doc(user.uid).update({
+                skillVideos: firestore.FieldValue.arrayUnion(downloadURL),
+            });
+
             await firestore().collection('videos').add({
                 videoUrl: downloadURL,
                 labourId: user.uid,
@@ -88,13 +106,17 @@ export default function SkillUploadScreen() {
             setVideoUri(null);
             setModalVisible(false);
         } catch (error) {
-            console.error("Upload Failed:", error.message);
-            Alert.alert('Upload Failed', error.message);
+            if (error.code === 'storage/canceled') {
+                Alert.alert('Upload Cancelled');
+            } else {
+                Alert.alert('Upload Failed', error.message);
+            }
         } finally {
             setUploading(false);
             setUploadProgress(null);
         }
     };
+
 
 
 
@@ -132,7 +154,7 @@ export default function SkillUploadScreen() {
                                 {/* Filled portion of the bar */}
                                 <View
                                     style={{
-                                        width: `${uploadProgress}%`,
+                                        width: uploadProgress,
                                         height: '100%',
                                         backgroundColor: 'green',
                                     }}
@@ -140,17 +162,26 @@ export default function SkillUploadScreen() {
 
                                 {/* Centered overlay text */}
                                 <View style={{ position: 'absolute', width: '100%', alignItems: 'center' }}>
-                                    <AppText style={{ color: 'white', }}>{uploadProgress || 0}%</AppText>
+                                    <AppText style={{ color: 'white', }}>{uploadProgress || 0}</AppText>
                                 </View>
                             </View>
 
 
                         )}
-                        <TouchableOpacity onPress={() => { setModalVisible(false); setUploading(false) }}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                // NOTE: We can't truly cancel, but we can ignore the result and reset UI
+
+                                setCurrentUploadId(null); // invalidate any pending upload progress
+                                setUploading(false);
+                                setUploadProgress(null);
+                                setModalVisible(false);
+                                setVideoUri(null); // also reset the video selected
+                            }}
+
+                        >
                             <AppText style={styles.closeText}>Close</AppText>
                         </TouchableOpacity>
-
-
 
 
                     </View>

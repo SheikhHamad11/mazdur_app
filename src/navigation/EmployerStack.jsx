@@ -12,6 +12,7 @@ import EditProfile from '../screens/LabourScreens/EditProfile';
 import EditJobScreen from '../screens/Employer/EditJobScreen';
 import NotificationsScreen from '../screens/LabourScreens/Notifications';
 import LabourProfileScreen from '../screens/LabourScreens/LabourProfile';
+import About from '../screens/LabourScreens/About';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +22,7 @@ export default function EmployerStack() {
             <Stack.Screen name="EmployerTabs" component={EmployerTabs} />
             <Stack.Screen name="PostJob" component={PostJobScreen} />
             <Stack.Screen name="EditProfile" component={EditProfile} />
+            <Stack.Screen name="About" component={About} />
             <Stack.Screen name="LabourProfile" component={LabourProfileScreen} />
             <Stack.Screen name="EditJobScreen" component={EditJobScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
